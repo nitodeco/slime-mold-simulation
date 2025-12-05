@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+	--font-retro: "Press Start 2P", cursive;
+}
+
+body {
+	font-family: var(--font-retro);
+	background-color: #0a0a0f;
+	color: #e0e0e0;
+	margin: 0;
+	overflow: hidden;
+}
+
+.pixel-slider {
+	-webkit-appearance: none;
+	appearance: none;
+	background: transparent;
+	height: 12px;
+}
+
+.pixel-slider::-webkit-slider-runnable-track {
+	background: #374151;
+	border: 2px solid #4b5563;
+	height: 12px;
+	box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.5);
+}
+
+.pixel-slider::-moz-range-track {
+	background: #374151;
+	border: 2px solid #4b5563;
+	height: 12px;
+	box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.5);
+}
+
+.pixel-slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	background: #9ca3af;
+	border: 2px solid #4b5563;
+	width: 16px;
+	height: 16px;
+	margin-top: -4px;
+	cursor: pointer;
+	box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.5);
+}
+
+.pixel-slider::-moz-range-thumb {
+	background: #9ca3af;
+	border: 2px solid #4b5563;
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+	box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.5);
+}
+
+.pixel-slider:active::-webkit-slider-thumb {
+	transform: translate(1px, 1px);
+	box-shadow: 1px 1px 0px 0px rgba(0, 0, 0, 0.5);
+}
+
+.pixel-slider:active::-moz-range-thumb {
+	transform: translate(1px, 1px);
+	box-shadow: 1px 1px 0px 0px rgba(0, 0, 0, 0.5);
+}

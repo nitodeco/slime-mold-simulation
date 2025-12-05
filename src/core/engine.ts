@@ -10,12 +10,18 @@ export function createEngine(tick: () => void): Engine {
 	let speed = 100;
 
 	function start() {
-		if (intervalId !== null) return;
+		if (intervalId !== null) {
+			return;
+		}
+
 		intervalId = window.setInterval(tick, speed);
 	}
 
 	function stop() {
-		if (intervalId === null) return;
+		if (intervalId === null) {
+			return;
+		}
+
 		window.clearInterval(intervalId);
 		intervalId = null;
 	}
@@ -34,4 +40,3 @@ export function createEngine(tick: () => void): Engine {
 
 	return { start, stop, setSpeed, isRunning };
 }
-
