@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createEffect, createSignal, onMount, Show } from "solid-js";
 import type { SlimeConfig } from "../../core/slime";
 import { Button } from "../Button";
 import { CollapseButton } from "./CollapseButton";
@@ -16,6 +16,7 @@ interface Props {
 	viewportWidth: number;
 	viewportHeight: number;
 	isExporting: () => boolean;
+	isRecording: () => boolean;
 	onPlayPause: () => void;
 	onStep: () => void;
 	onClear: () => void;
@@ -24,6 +25,7 @@ interface Props {
 	onRandomize: () => void;
 	onToggleSimulationMode: () => void;
 	onExport: (width: number, height: number) => void;
+	onToggleRecording: () => void;
 }
 
 const STORAGE_KEY = "controldock-collapsed";
@@ -108,6 +110,22 @@ export const ControlDock = (props: Props) => {
 							aria-label="Randomize settings"
 						>
 							<i class="hn hn-shuffle w-5 h-5" />
+						</Button>
+						<Button
+							onClick={props.onToggleRecording}
+							class={`px-4 py-2 min-w-[48px] flex items-center justify-center ${
+								props.isRecording() ? "text-red-500" : ""
+							}`}
+							aria-label={
+								props.isRecording() ? "Stop recording" : "Record video"
+							}
+						>
+							<Show
+								when={props.isRecording()}
+								fallback={<i class="hn hn-retro-camera w-5 h-5" />}
+							>
+								<div class="w-4 h-4 bg-red-500 rounded-sm" />
+							</Show>
 						</Button>
 						<ExportControl
 							viewportWidth={props.viewportWidth}

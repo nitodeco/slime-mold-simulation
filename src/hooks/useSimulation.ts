@@ -45,6 +45,7 @@ export function useSimulation() {
 	const [fps, setFps] = createSignal(0);
 	const [averageFrameTime, setAverageFrameTime] = createSignal(0);
 	const [isExporting, setIsExporting] = createSignal(false);
+	const [isRecording, setIsRecording] = createSignal(false);
 
 	let isInitialLoad = true;
 
@@ -52,6 +53,8 @@ export function useSimulation() {
 	const agentsRef: { current: AgentPool | null } = { current: null };
 	let gpuSimulation: GPUSimulation | null = null;
 	let canvasRef: HTMLCanvasElement | null = null;
+	let mediaRecorder: MediaRecorder | null = null;
+	let recordedChunks: Blob[] = [];
 	let gpuInitialized = false;
 	let lastFrameTime = 0;
 
@@ -400,6 +403,54 @@ export function useSimulation() {
 		}
 	}
 
+	function handleToggleRecording() {
+		if (isRecording()) {
+			if (mediaRecorder && mediaRecorder.state !== "inactive") {
+				mediaRecorder.stop();
+			}
+		} else {
+			if (!canvasRef) return;
+
+			try {
+				const stream = canvasRef.captureStream(60);
+
+				const mimeType = MediaRecorder.isTypeSupported("video/webm; codecs=vp9")
+					? "video/webm; codecs=vp9"
+					: "video/webm";
+
+				mediaRecorder = new MediaRecorder(stream, {
+					mimeType,
+					videoBitsPerSecond: 8_000_000, // 8 Mbps
+				});
+
+				recordedChunks = [];
+
+				mediaRecorder.ondataavailable = (event) => {
+					if (event.data.size > 0) {
+						recordedChunks.push(event.data);
+					}
+				};
+
+				mediaRecorder.onstop = () => {
+					const blob = new Blob(recordedChunks, { type: mimeType });
+					const url = URL.createObjectURL(blob);
+					const link = document.createElement("a");
+					link.href = url;
+					link.download = `slime-simulation-${Date.now()}.webm`;
+					link.click();
+					URL.revokeObjectURL(url);
+					setIsRecording(false);
+				};
+
+				mediaRecorder.start();
+				setIsRecording(true);
+			} catch (err) {
+				console.error("Error starting recording:", err);
+				setIsRecording(false);
+			}
+		}
+	}
+
 	createEffect(() => {
 		const currentSpeed = speed();
 		const currentSlimeConfig = slimeConfig();
@@ -458,6 +509,8 @@ export function useSimulation() {
 		handleRandomize,
 		handleToggleSimulationMode,
 		handleExportScreenshot,
+		handleToggleRecording,
 		setCanvasRef,
+		isRecording,
 	};
 }

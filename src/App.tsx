@@ -49,6 +49,7 @@ const App = () => {
 				viewportWidth={viewportHook.canvasSize().width}
 				viewportHeight={viewportHook.canvasSize().height}
 				isExporting={simulationHook.isExporting}
+				isRecording={simulationHook.isRecording}
 				onPlayPause={simulationHook.handlePlayPause}
 				onStep={simulationHook.handleStep}
 				onClear={simulationHook.handleClear}
@@ -57,6 +58,7 @@ const App = () => {
 				onRandomize={simulationHook.handleRandomize}
 				onToggleSimulationMode={simulationHook.handleToggleSimulationMode}
 				onExport={simulationHook.handleExportScreenshot}
+				onToggleRecording={simulationHook.handleToggleRecording}
 			/>
 
 			<PerformancePanel
