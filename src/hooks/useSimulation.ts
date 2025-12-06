@@ -159,9 +159,6 @@ export function useSimulation() {
 		}
 	}
 
-	function handleStep() {
-		tick();
-	}
 
 	function handleClear() {
 		if (gpuAvailable() && useWebGPU() && gpuSimulation) {
@@ -596,7 +593,6 @@ export function useSimulation() {
 		agentCount,
 		isExporting,
 		handlePlayPause,
-		handleStep,
 		handleClear,
 		handleSpeedChange,
 		handleSlimeConfigChange,

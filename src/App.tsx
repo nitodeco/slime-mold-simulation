@@ -55,7 +55,6 @@ const App = () => {
 				isExporting={simulationHook.isExporting}
 				isRecording={simulationHook.isRecording}
 				onPlayPause={simulationHook.handlePlayPause}
-				onStep={simulationHook.handleStep}
 				onClear={simulationHook.handleClear}
 				onSpeedChange={simulationHook.handleSpeedChange}
 				onSlimeConfigChange={simulationHook.handleSlimeConfigChange}

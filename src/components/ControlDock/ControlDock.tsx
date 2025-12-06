@@ -24,7 +24,6 @@ interface Props {
 	isExporting: () => boolean;
 	isRecording: () => boolean;
 	onPlayPause: () => void;
-	onStep: () => void;
 	onClear: () => void;
 	onSpeedChange: (speed: number) => void;
 	onSlimeConfigChange: (
@@ -72,35 +71,9 @@ export const ControlDock = (props: Props) => {
 						<PlaybackControls
 							running={props.running}
 							onPlayPause={props.onPlayPause}
-							onStep={props.onStep}
+							onRandomize={props.onRandomize}
 							onClear={props.onClear}
 						/>
-						<SpeedControl
-							speed={props.speed}
-							onSpeedChange={props.onSpeedChange}
-						/>
-						<SpawnPatternControl
-							spawnPattern={() => props.slimeConfig().spawnPattern}
-							onSpawnPatternChange={(pattern: SpawnPattern) =>
-								props.onSlimeConfigChange("spawnPattern", pattern)
-							}
-						/>
-						<Button
-							onClick={props.onToggleSimulationMode}
-							class="px-2 py-2 min-w-[64px] flex items-center justify-center"
-							aria-label="Toggle simulation mode"
-						>
-							<span class="text-sm font-mono">
-								{props.useWebGPU() ? "GPU" : "CPU"}
-							</span>
-						</Button>
-						<Button
-							onClick={props.onRandomize}
-							class="px-4 py-2 min-w-[48px] flex items-center justify-center"
-							aria-label="Randomize settings"
-						>
-							<i class="hn hn-shuffle w-5 h-5" />
-						</Button>
 						<ExportControl
 							viewportWidth={props.viewportWidth}
 							viewportHeight={props.viewportHeight}
@@ -116,33 +89,56 @@ export const ControlDock = (props: Props) => {
 						style={{ "grid-template-rows": collapsed() ? "0fr" : "1fr" }}
 					>
 						<div class="overflow-hidden">
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-700">
-								<div class="flex flex-col gap-4">
-									<SpeciesTabs
-										configs={props.slimeConfig().species}
-										onChange={(index, key, value) =>
-											props.onSlimeConfigChange("species", value, index, key)
+							<div class="flex flex-col gap-4 pt-3 border-t border-gray-700">
+								<div class="flex flex-row flex-wrap items-center justify-center gap-3 md:gap-4">
+									<SpeedControl
+										speed={props.speed}
+										onSpeedChange={props.onSpeedChange}
+									/>
+									<SpawnPatternControl
+										spawnPattern={() => props.slimeConfig().spawnPattern}
+										onSpawnPatternChange={(pattern: SpawnPattern) =>
+											props.onSlimeConfigChange("spawnPattern", pattern)
 										}
 									/>
+									<Button
+										onClick={props.onToggleSimulationMode}
+										class="px-2 py-2 min-w-[64px] flex items-center justify-center"
+										aria-label="Toggle simulation mode"
+									>
+										<span class="text-sm font-mono">
+											{props.useWebGPU() ? "GPU" : "CPU"}
+										</span>
+									</Button>
 								</div>
-								<div class="flex flex-col gap-4">
-									<InteractionMatrix
-										config={props.slimeConfig()}
-										onChange={(row, col, value) =>
-											props.onSlimeConfigChange(
-												"interactions",
-												value,
-												undefined,
-												undefined,
-												row,
-												col,
-											)
-										}
-									/>
-									<SlimeMoldControls
-										slimeConfig={props.slimeConfig}
-										onSlimeConfigChange={props.onSlimeConfigChange}
-									/>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3">
+									<div class="flex flex-col gap-4">
+										<SpeciesTabs
+											configs={props.slimeConfig().species}
+											onChange={(index, key, value) =>
+												props.onSlimeConfigChange("species", value, index, key)
+											}
+										/>
+									</div>
+									<div class="flex flex-col gap-4">
+										<InteractionMatrix
+											config={props.slimeConfig()}
+											onChange={(row, col, value) =>
+												props.onSlimeConfigChange(
+													"interactions",
+													value,
+													undefined,
+													undefined,
+													row,
+													col,
+												)
+											}
+										/>
+										<SlimeMoldControls
+											slimeConfig={props.slimeConfig}
+											onSlimeConfigChange={props.onSlimeConfigChange}
+										/>
+									</div>
 								</div>
 							</div>
 						</div>

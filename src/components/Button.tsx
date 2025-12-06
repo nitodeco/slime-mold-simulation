@@ -3,7 +3,7 @@ import type { JSX } from "solid-js";
 interface Props {
 	onClick: () => void;
 	children: JSX.Element;
-	variant?: "default" | "play" | "stop";
+	variant?: "default" | "play" | "stop" | "accent";
 	class?: string;
 	"aria-label"?: string;
 }
@@ -16,6 +16,7 @@ export const Button = (props: Props) => {
 		default: "bg-gray-700 text-gray-200 hover:bg-gray-600",
 		play: "bg-green-900/50 text-green-200 hover:bg-green-900/70",
 		stop: "bg-red-900/50 text-red-200 hover:bg-red-900/70",
+		accent: "bg-cyan-700 text-cyan-100 hover:bg-cyan-600 border-cyan-500",
 	};
 
 	const variant = props.variant ?? "default";
