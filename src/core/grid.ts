@@ -38,20 +38,9 @@ export function clearGrid(grid: Grid): void {
 	grid.data.fill(0);
 }
 
-export function cloneGrid(grid: Grid): Grid {
-	return {
-		data: new Uint8Array(grid.data),
-		width: grid.width,
-		height: grid.height,
-	};
-}
-
-export function copyGridData(source: Grid, destination: Grid): void {
-	destination.data.set(source.data);
-}
-
 export function randomizeGrid(grid: Grid, density = 0.3): void {
 	const length = grid.data.length;
+
 	for (let index = 0; index < length; index++) {
 		grid.data[index] = Math.random() < density ? 1 : 0;
 	}

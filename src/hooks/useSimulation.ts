@@ -1,17 +1,10 @@
 import { createSignal, onCleanup, onMount } from "solid-js";
 import { GRID_COLS, GRID_ROWS } from "../constants";
 import { createEngine, type Engine } from "../core/engine";
+import { clearGrid, createGrid, type Grid } from "../core/grid";
 import {
-	clearGrid,
-	createGrid,
-	type Grid,
-	randomizeGrid,
-	setCell,
-} from "../core/grid";
-import { getStepFunction, type RuleName } from "../core/rules";
-import {
-	type Agent,
-	createAgents,
+	type AgentPool,
+	createAgentPool,
 	DEFAULT_SLIME_CONFIG,
 	type SlimeConfig,
 	stepSlime,
@@ -22,35 +15,51 @@ export function useSimulation() {
 	const bufferB = createGrid(GRID_ROWS, GRID_COLS);
 
 	const [currentBuffer, setCurrentBuffer] = createSignal<Grid>(bufferA);
-	const [rule, setRule] = createSignal<RuleName>("slime");
 	const [running, setRunning] = createSignal(false);
-	const [speed, setSpeed] = createSignal(100);
+	const [speed, setSpeed] = createSignal(50);
 	const [slimeConfig, setSlimeConfig] =
 		createSignal<SlimeConfig>(DEFAULT_SLIME_CONFIG);
+	const [interactionTarget, setInteractionTarget] = createSignal<{
+		row: number;
+		col: number;
+	} | null>(null);
 
 	let engine: Engine | undefined;
-	const agentsRef: { current: Agent[] } = { current: [] };
+	const agentsRef: { current: AgentPool | null } = { current: null };
+
+	function getOtherBuffer(current: Grid): Grid {
+		return current === bufferA ? bufferB : bufferA;
+	}
+
+	function forceRerender() {
+		setCurrentBuffer((current) => current);
+	}
+
+	function speedToInterval(speedValue: number): number {
+		const interval = 100 - speedValue;
+		return interval === 0 ? 1 : interval;
+	}
 
 	function initAgents() {
 		const config = slimeConfig();
 		const count = Math.floor(GRID_ROWS * GRID_COLS * (config.agentCount / 100));
-		agentsRef.current = createAgents(count, GRID_COLS, GRID_ROWS);
+		agentsRef.current = createAgentPool(count, GRID_COLS, GRID_ROWS);
 	}
 
 	function tick() {
-		const currentRule = rule();
 		const source = currentBuffer();
-		const destination = source === bufferA ? bufferB : bufferA;
+		const destination = getOtherBuffer(source);
 
-		if (currentRule === "slime") {
-			if (agentsRef.current.length === 0) {
-				initAgents();
+		if (agentsRef.current === null) {
+			initAgents();
+		}
+
+		if (agentsRef.current) {
+			const target = interactionTarget();
+			if (target) {
+				applyVortex(target.row, target.col);
 			}
-
 			stepSlime(source, destination, agentsRef.current, slimeConfig());
-		} else {
-			const stepFunction = getStepFunction(currentRule);
-			stepFunction(source, destination);
 		}
 
 		setCurrentBuffer(destination);
@@ -77,41 +86,15 @@ export function useSimulation() {
 	function handleClear() {
 		const current = currentBuffer();
 		clearGrid(current);
-
-		const other = current === bufferA ? bufferB : bufferA;
-		clearGrid(other);
-
-		if (rule() === "slime") {
-			agentsRef.current = [];
-		}
-
-		setCurrentBuffer(current === bufferA ? bufferA : bufferB);
-	}
-
-	function handleRandom() {
-		if (rule() === "slime") {
-			initAgents();
-			clearGrid(currentBuffer());
-			clearGrid(currentBuffer() === bufferA ? bufferB : bufferA);
-		} else {
-			randomizeGrid(currentBuffer(), 0.3);
-		}
-		setCurrentBuffer(currentBuffer() === bufferA ? bufferA : bufferB);
+		clearGrid(getOtherBuffer(current));
+		agentsRef.current = null;
+		initAgents();
+		forceRerender();
 	}
 
 	function handleSpeedChange(newSpeed: number) {
 		setSpeed(newSpeed);
-		engine?.setSpeed(newSpeed);
-	}
-
-	function handleRuleChange(newRule: RuleName) {
-		setRule(newRule);
-		handleClear();
-		if (newRule === "slime") {
-			initAgents();
-		} else {
-			handleRandom();
-		}
+		engine?.setSpeed(speedToInterval(newSpeed));
 	}
 
 	function handleSlimeConfigChange(
@@ -124,22 +107,87 @@ export function useSimulation() {
 		}));
 
 		if (key === "agentCount") {
+			const current = currentBuffer();
 			initAgents();
-			clearGrid(currentBuffer());
-			clearGrid(currentBuffer() === bufferA ? bufferB : bufferA);
+			clearGrid(current);
+			clearGrid(getOtherBuffer(current));
 		}
 	}
 
-	function setCellAt(row: number, col: number, value: number) {
-		setCell(currentBuffer(), row, col, value);
-		setCurrentBuffer(currentBuffer() === bufferA ? bufferA : bufferB);
+	function handleRandomize() {
+		const currentColor = slimeConfig().color;
+		const randomSensorAngle =
+			Math.round(((Math.random() * 180 * Math.PI) / 180) * 100) / 100;
+		const randomTurnAngle =
+			Math.round(((Math.random() * 180 * Math.PI) / 180) * 100) / 100;
+		const randomSensorDist = Math.floor(Math.random() * 64) + 1;
+		const randomDecayRate =
+			Math.round((Math.random() * (20 - 0.1) + 0.1) * 100) / 100;
+		const randomDiffuseWeight = Math.round(Math.random() * 100) / 100;
+		const randomDepositAmount = Math.floor(Math.random() * 255) + 1;
+		const randomAgentSpeed =
+			Math.round((Math.random() * (5 - 0.1) + 0.1) * 100) / 100;
+		const randomAgentCount =
+			Math.round((Math.random() * (20 - 0.5) + 0.5) * 100) / 100;
+		const randomVortexRadius = Math.floor(Math.random() * (100 - 10 + 1)) + 10;
+
+		setSlimeConfig({
+			sensorAngle: randomSensorAngle,
+			turnAngle: randomTurnAngle,
+			sensorDist: randomSensorDist,
+			decayRate: randomDecayRate,
+			diffuseWeight: randomDiffuseWeight,
+			depositAmount: randomDepositAmount,
+			agentSpeed: randomAgentSpeed,
+			agentCount: randomAgentCount,
+			vortexRadius: randomVortexRadius,
+			color: currentColor,
+		});
+
+		const current = currentBuffer();
+		initAgents();
+		clearGrid(current);
+		clearGrid(getOtherBuffer(current));
+		forceRerender();
+	}
+
+	function applyVortex(row: number, col: number) {
+		const radius = slimeConfig().vortexRadius;
+		const squaredRadius = radius * radius;
+		const agents = agentsRef.current;
+
+		if (agents === null) {
+			return;
+		}
+
+		for (let agentIndex = 0; agentIndex < agents.count; agentIndex++) {
+			const agentX = agents.x[agentIndex];
+			const agentY = agents.y[agentIndex];
+			const deltaX = agentX - col;
+			const deltaY = agentY - row;
+			const distanceSquared = deltaX * deltaX + deltaY * deltaY;
+
+			if (distanceSquared < squaredRadius) {
+				const angleToAgent = Math.atan2(deltaY, deltaX);
+				// PI/2 is pure orbit, 0 is pure repulsion. PI/4 mixes both for a spiraling repulsion.
+				agents.angle[agentIndex] = angleToAgent + Math.PI / 4;
+			}
+		}
+	}
+
+	function setCellAt(row: number, col: number, _value: number) {
+		setInteractionTarget({ row, col });
+		applyVortex(row, col);
+	}
+
+	function clearInteraction() {
+		setInteractionTarget(null);
 	}
 
 	onMount(() => {
 		engine = createEngine(tick);
-		if (rule() === "slime") {
-			initAgents();
-		}
+		engine.setSpeed(speedToInterval(speed()));
+		initAgents();
 		onCleanup(() => {
 			engine?.stop();
 		});
@@ -147,17 +195,17 @@ export function useSimulation() {
 
 	return {
 		grid: currentBuffer,
-		rule,
 		running,
 		speed,
 		slimeConfig,
 		handlePlayPause,
 		handleStep,
 		handleClear,
-		handleRandom,
 		handleSpeedChange,
-		handleRuleChange,
 		handleSlimeConfigChange,
+		handleRandomize,
 		setCellAt,
+		clearInteraction,
+		interactionTarget,
 	};
 }

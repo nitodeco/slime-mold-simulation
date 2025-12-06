@@ -5,6 +5,7 @@ interface Props {
 	children: JSX.Element;
 	variant?: "default" | "play" | "stop";
 	class?: string;
+	"aria-label"?: string;
 }
 
 export const Button = (props: Props) => {
@@ -21,7 +22,12 @@ export const Button = (props: Props) => {
 	const classes = `${baseClasses} ${variantClasses[variant]} ${props.class ?? ""}`;
 
 	return (
-		<button type="button" onClick={props.onClick} class={classes}>
+		<button
+			type="button"
+			onClick={props.onClick}
+			class={classes}
+			aria-label={props["aria-label"]}
+		>
 			{props.children}
 		</button>
 	);

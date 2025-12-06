@@ -5,16 +5,15 @@ import type { Viewport } from "./useViewport";
 export function useCanvasInteraction(
 	viewport: () => Viewport,
 	setCellAt: (row: number, col: number, value: number) => void,
-	setViewport: (updater: (v: Viewport) => Viewport) => void,
+	onInteractionEnd?: () => void,
 ) {
 	const [isDrawing, setIsDrawing] = createSignal(false);
-	const [isPanning, setIsPanning] = createSignal(false);
-	const [lastMousePos, setLastMousePos] = createSignal({ x: 0, y: 0 });
 
 	function getCellFromEvent(
 		clientX: number,
 		clientY: number,
 	): { row: number; col: number } {
+		// Zoom is always 1, x/y always 0, but we keep reading from viewport just in case
 		const { x, y, zoom } = viewport();
 		const worldX = (clientX - x) / zoom;
 		const worldY = (clientY - y) / zoom;
@@ -33,32 +32,24 @@ export function useCanvasInteraction(
 			if (row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS) {
 				setCellAt(row, col, 1);
 			}
-		} else if (event.button === 1 || event.button === 2) {
-			event.preventDefault();
-			setIsPanning(true);
-			setLastMousePos({ x: event.clientX, y: event.clientY });
 		}
 	}
 
 	function handleMouseMove(event: MouseEvent) {
-		if (isPanning()) {
-			const dx = event.clientX - lastMousePos().x;
-			const dy = event.clientY - lastMousePos().y;
-
-			setViewport((v) => ({ ...v, x: v.x + dx, y: v.y + dy }));
-			setLastMousePos({ x: event.clientX, y: event.clientY });
-		} else if (isDrawing()) {
+		if (isDrawing()) {
 			const { row, col } = getCellFromEvent(event.clientX, event.clientY);
 
-			if (row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS) {
-				setCellAt(row, col, 1);
-			}
+			// We don't check bounds here because the vortex effect in setCellAt handles agents outside exact cell bounds nicely
+			// and we want continuous updates even if not changing cells for the vortex effect
+			setCellAt(row, col, 1);
 		}
 	}
 
 	function handleMouseUp() {
+		if (isDrawing()) {
+			onInteractionEnd?.();
+		}
 		setIsDrawing(false);
-		setIsPanning(false);
 	}
 
 	return {

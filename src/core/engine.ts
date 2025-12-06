@@ -6,36 +6,69 @@ export interface Engine {
 }
 
 export function createEngine(tick: () => void): Engine {
-	let intervalId: number | null = null;
-	let speed = 100;
+	let running = false;
+	let lastTime = 0;
+	let accumulator = 0;
+	let targetInterval = 100;
+	let animationFrameId: number | null = null;
 
-	function start() {
-		if (intervalId !== null) {
+	const MAX_TICKS_PER_FRAME = 4;
+
+	function loop(currentTime: number) {
+		if (!running) {
 			return;
 		}
 
-		intervalId = window.setInterval(tick, speed);
+		const deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+		accumulator += deltaTime;
+
+		let ticksThisFrame = 0;
+		while (
+			accumulator >= targetInterval &&
+			ticksThisFrame < MAX_TICKS_PER_FRAME
+		) {
+			tick();
+			accumulator -= targetInterval;
+			ticksThisFrame++;
+		}
+
+		if (accumulator > targetInterval * MAX_TICKS_PER_FRAME) {
+			accumulator = 0;
+		}
+
+		animationFrameId = requestAnimationFrame(loop);
+	}
+
+	function start() {
+		if (running) {
+			return;
+		}
+
+		running = true;
+		lastTime = performance.now();
+		accumulator = 0;
+		animationFrameId = requestAnimationFrame(loop);
 	}
 
 	function stop() {
-		if (intervalId === null) {
+		if (!running) {
 			return;
 		}
 
-		window.clearInterval(intervalId);
-		intervalId = null;
-	}
-
-	function setSpeed(intervalMs: number) {
-		speed = intervalMs;
-		if (intervalId !== null) {
-			stop();
-			start();
+		running = false;
+		if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
 		}
 	}
 
+	function setSpeed(intervalMs: number) {
+		targetInterval = intervalMs;
+	}
+
 	function isRunning() {
-		return intervalId !== null;
+		return running;
 	}
 
 	return { start, stop, setSpeed, isRunning };

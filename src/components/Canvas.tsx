@@ -5,7 +5,6 @@ interface Props {
 	onMouseDown: (event: MouseEvent) => void;
 	onMouseMove: (event: MouseEvent) => void;
 	onMouseUp: () => void;
-	onWheel: (event: WheelEvent) => void;
 }
 
 export const Canvas = (props: Props) => {
@@ -19,7 +18,6 @@ export const Canvas = (props: Props) => {
 			onMouseMove={props.onMouseMove}
 			onMouseUp={props.onMouseUp}
 			onMouseLeave={props.onMouseUp}
-			onWheel={props.onWheel}
 			onContextMenu={(e) => e.preventDefault()}
 		/>
 	);
