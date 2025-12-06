@@ -4,12 +4,15 @@ import type { Grid } from "./grid";
 import { generateAgentPositions } from "./spawnPatterns";
 import { fastCos, fastSin } from "./trigLookup";
 
-export type SpawnPattern =
-	| "random"
-	| "center"
-	| "circle"
-	| "multiCircle"
-	| "spiral";
+export const VALID_SPAWN_PATTERNS = [
+	"random",
+	"center",
+	"circle",
+	"multiCircle",
+	"spiral",
+] as const;
+
+export type SpawnPattern = (typeof VALID_SPAWN_PATTERNS)[number];
 
 export type ColorPresetName =
 	| "neon"
@@ -86,36 +89,57 @@ export function getColorPresetFloats(
 	};
 }
 
-export interface SlimeConfig {
+export interface SpeciesConfig {
 	sensorAngle: number;
 	turnAngle: number;
 	sensorDist: number;
-	decayRate: number;
-	diffuseWeight: number;
-	depositAmount: number;
 	agentSpeed: number;
-	agentCount: number;
+	depositAmount: number;
 	colorPreset: ColorPresetName;
-	spawnPattern: SpawnPattern;
+	agentCount: number; // percentage of total
 }
 
-export const DEFAULT_SLIME_CONFIG: SlimeConfig = {
+export interface SlimeConfig {
+	decayRate: number;
+	diffuseWeight: number;
+	spawnPattern: SpawnPattern;
+	agentCount: number; // Total agent count
+	species: [SpeciesConfig, SpeciesConfig, SpeciesConfig];
+	interactions: number[][]; // 3x3 matrix
+}
+
+export const DEFAULT_SPECIES_CONFIG: SpeciesConfig = {
 	sensorAngle: Math.PI / 4,
 	turnAngle: Math.PI / 4,
 	sensorDist: 9,
+	agentSpeed: 1,
+	depositAmount: 50,
+	colorPreset: "neon",
+	agentCount: 33.33,
+};
+
+export const DEFAULT_SLIME_CONFIG: SlimeConfig = {
 	decayRate: 2,
 	diffuseWeight: 0.1,
-	depositAmount: 50,
-	agentSpeed: 1,
-	agentCount: 5,
-	colorPreset: "neon",
 	spawnPattern: "random",
+	agentCount: 5,
+	species: [
+		{ ...DEFAULT_SPECIES_CONFIG, colorPreset: "neon" },
+		{ ...DEFAULT_SPECIES_CONFIG, colorPreset: "fire" },
+		{ ...DEFAULT_SPECIES_CONFIG, colorPreset: "ocean" },
+	],
+	interactions: [
+		[1, -0.1, -0.1],
+		[-0.1, 1, -0.1],
+		[-0.1, -0.1, 1],
+	],
 };
 
 export interface AgentPool {
 	x: Float32Array;
 	y: Float32Array;
 	angle: Float32Array;
+	species: Uint32Array;
 	count: number;
 }
 
@@ -123,19 +147,38 @@ export function createAgentPool(
 	count: number,
 	width: number,
 	height: number,
-	spawnPattern: SpawnPattern = "random",
+	config: SlimeConfig,
 ): AgentPool {
 	const { xPositions, yPositions, angles } = generateAgentPositions(
-		spawnPattern,
+		config.spawnPattern,
 		count,
 		width,
 		height,
 	);
 
+	const species = new Uint32Array(count);
+	const species1Count = Math.floor(
+		(count * config.species[0].agentCount) / 100,
+	);
+	const species2Count = Math.floor(
+		(count * config.species[1].agentCount) / 100,
+	);
+
+	for (let i = 0; i < count; i++) {
+		if (i < species1Count) {
+			species[i] = 0;
+		} else if (i < species1Count + species2Count) {
+			species[i] = 1;
+		} else {
+			species[i] = 2;
+		}
+	}
+
 	return {
 		x: xPositions,
 		y: yPositions,
 		angle: angles,
+		species,
 		count,
 	};
 }
@@ -188,15 +231,19 @@ export function stepSlime(
 	const agentXPositions = agents.x;
 	const agentYPositions = agents.y;
 	const agentAngles = agents.angle;
+	const agentSpecies = agents.species;
 	const agentCount = agents.count;
 
-	const sensorAngle = config.sensorAngle;
-	const turnAngle = config.turnAngle;
-	const sensorDist = config.sensorDist;
-	const agentSpeed = config.agentSpeed;
-	const depositAmount = config.depositAmount;
-
 	for (let agentIndex = 0; agentIndex < agentCount; agentIndex++) {
+		const speciesIndex = agentSpecies[agentIndex];
+		const speciesConfig = config.species[speciesIndex];
+
+		const sensorAngle = speciesConfig.sensorAngle;
+		const turnAngle = speciesConfig.turnAngle;
+		const sensorDist = speciesConfig.sensorDist;
+		const agentSpeed = speciesConfig.agentSpeed;
+		const depositAmount = speciesConfig.depositAmount;
+
 		const agentX = agentXPositions[agentIndex];
 		const agentY = agentYPositions[agentIndex];
 		let agentAngle = agentAngles[agentIndex];

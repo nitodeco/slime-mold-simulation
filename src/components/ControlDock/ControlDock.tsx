@@ -1,12 +1,17 @@
 import { createEffect, createSignal, onMount } from "solid-js";
-import type { SlimeConfig, SpawnPattern } from "../../core/slime";
+import type {
+	SlimeConfig,
+	SpawnPattern,
+	SpeciesConfig,
+} from "../../core/slime";
 import { Button } from "../Button";
 import { CollapseButton } from "./CollapseButton";
-import { ColorControl } from "./ColorControl";
 import { ExportControl } from "./ExportControl";
+import { InteractionMatrix } from "./InteractionMatrix";
 import { PlaybackControls } from "./PlaybackControls";
 import { SlimeMoldControls } from "./SlimeMoldControls";
 import { SpawnPatternControl } from "./SpawnPatternControl";
+import { SpeciesTabs } from "./SpeciesControl";
 import { SpeedControl } from "./SpeedControl";
 
 interface Props {
@@ -22,7 +27,14 @@ interface Props {
 	onStep: () => void;
 	onClear: () => void;
 	onSpeedChange: (speed: number) => void;
-	onSlimeConfigChange: (key: keyof SlimeConfig, value: number | string) => void;
+	onSlimeConfigChange: (
+		key: keyof SlimeConfig,
+		value: SlimeConfig[keyof SlimeConfig] | SpeciesConfig[keyof SpeciesConfig],
+		speciesIndex?: number,
+		speciesKey?: keyof SpeciesConfig,
+		interactionRow?: number,
+		interactionCol?: number,
+	) => void;
 	onRandomize: () => void;
 	onToggleSimulationMode: () => void;
 	onExport: (width: number, height: number) => void;
@@ -33,8 +45,6 @@ const STORAGE_KEY = "controldock-collapsed";
 
 export const ControlDock = (props: Props) => {
 	const [collapsed, setCollapsed] = createSignal(false);
-	const [isExpanding, setIsExpanding] = createSignal(false);
-	const [isCollapsing, setIsCollapsing] = createSignal(false);
 
 	onMount(() => {
 		const stored = localStorage.getItem(STORAGE_KEY);
@@ -48,36 +58,15 @@ export const ControlDock = (props: Props) => {
 	});
 
 	function handleToggle() {
-		if (collapsed()) {
-			setIsExpanding(true);
-			setCollapsed(false);
-			setTimeout(() => {
-				setIsExpanding(false);
-			}, 100);
-		} else {
-			setIsCollapsing(true);
-			setTimeout(() => {
-				setCollapsed(true);
-				setIsCollapsing(false);
-			}, 100);
-		}
+		setCollapsed(!collapsed());
 	}
 
 	return (
 		<div class="absolute bottom-0 left-0 w-full z-10 flex justify-center pointer-events-none px-4">
-			<div
-				class={`relative w-full max-w-[95vw] md:max-w-6xl ${
-					isExpanding()
-						? "dock-expand"
-						: isCollapsing()
-							? "dock-collapse"
-							: collapsed()
-								? "translate-y-[calc(100%-8px)]"
-								: ""
-				}`}
-			>
+			<div class="relative w-full max-w-[95vw] md:max-w-6xl">
+				<CollapseButton collapsed={collapsed} onClick={handleToggle} />
 				<div
-					class={`pointer-events-auto bg-gray-800/95 border-2 border-gray-600 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.6)] pt-2 pb-4 px-4 flex flex-col gap-3 w-full`}
+					class={`relative pointer-events-auto bg-gray-800/95 border-2 border-gray-600 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.6)] pt-2 pb-4 px-4 flex flex-col gap-3 w-full`}
 				>
 					<div class="flex flex-row flex-wrap items-center justify-center gap-2 md:gap-4 shrink-0 z-20 relative">
 						<PlaybackControls
@@ -89,12 +78,6 @@ export const ControlDock = (props: Props) => {
 						<SpeedControl
 							speed={props.speed}
 							onSpeedChange={props.onSpeedChange}
-						/>
-						<ColorControl
-							selectedPreset={() => props.slimeConfig().colorPreset}
-							onPresetChange={(presetName) =>
-								props.onSlimeConfigChange("colorPreset", presetName)
-							}
 						/>
 						<SpawnPatternControl
 							spawnPattern={() => props.slimeConfig().spawnPattern}
@@ -128,12 +111,43 @@ export const ControlDock = (props: Props) => {
 						/>
 					</div>
 
-					<SlimeMoldControls
-						slimeConfig={props.slimeConfig}
-						onSlimeConfigChange={props.onSlimeConfigChange}
-					/>
+					<div
+						class="grid transition-[grid-template-rows] duration-300 ease-in-out"
+						style={{ "grid-template-rows": collapsed() ? "0fr" : "1fr" }}
+					>
+						<div class="overflow-hidden">
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-700">
+								<div class="flex flex-col gap-4">
+									<SpeciesTabs
+										configs={props.slimeConfig().species}
+										onChange={(index, key, value) =>
+											props.onSlimeConfigChange("species", value, index, key)
+										}
+									/>
+								</div>
+								<div class="flex flex-col gap-4">
+									<InteractionMatrix
+										config={props.slimeConfig()}
+										onChange={(row, col, value) =>
+											props.onSlimeConfigChange(
+												"interactions",
+												value,
+												undefined,
+												undefined,
+												row,
+												col,
+											)
+										}
+									/>
+									<SlimeMoldControls
+										slimeConfig={props.slimeConfig}
+										onSlimeConfigChange={props.onSlimeConfigChange}
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
-				<CollapseButton collapsed={collapsed} onClick={handleToggle} />
 			</div>
 		</div>
 	);

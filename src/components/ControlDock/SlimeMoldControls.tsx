@@ -1,4 +1,4 @@
-import type { SlimeConfig } from "../../core/slime";
+import type { SlimeConfig, SpeciesConfig } from "../../core/slime";
 
 interface SliderControlProps {
 	label: string;
@@ -34,45 +34,17 @@ const SliderControl = (props: SliderControlProps) => {
 
 interface SlimeMoldControlsProps {
 	slimeConfig: () => SlimeConfig;
-	onSlimeConfigChange: (key: keyof SlimeConfig, value: number | string) => void;
+	onSlimeConfigChange: (
+		key: keyof SlimeConfig,
+		value: SlimeConfig[keyof SlimeConfig] | SpeciesConfig[keyof SpeciesConfig],
+	) => void;
 }
 
 export const SlimeMoldControls = (props: SlimeMoldControlsProps) => {
 	const config = () => props.slimeConfig();
 
 	return (
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-3 border-t border-gray-700">
-			<SliderControl
-				label="Sensor Angle"
-				displayValue={`${Math.round((config().sensorAngle * 180) / Math.PI)}°`}
-				value={(config().sensorAngle * 180) / Math.PI}
-				min={0}
-				max={180}
-				onChange={(value) =>
-					props.onSlimeConfigChange("sensorAngle", (value * Math.PI) / 180)
-				}
-			/>
-
-			<SliderControl
-				label="Turn Angle"
-				displayValue={`${Math.round((config().turnAngle * 180) / Math.PI)}°`}
-				value={(config().turnAngle * 180) / Math.PI}
-				min={0}
-				max={180}
-				onChange={(value) =>
-					props.onSlimeConfigChange("turnAngle", (value * Math.PI) / 180)
-				}
-			/>
-
-			<SliderControl
-				label="Sensor Dist"
-				displayValue={`${config().sensorDist}px`}
-				value={config().sensorDist}
-				min={1}
-				max={64}
-				onChange={(value) => props.onSlimeConfigChange("sensorDist", value)}
-			/>
-
+		<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
 			<SliderControl
 				label="Decay Rate"
 				displayValue={config().decayRate.toFixed(1)}
@@ -94,26 +66,7 @@ export const SlimeMoldControls = (props: SlimeMoldControlsProps) => {
 			/>
 
 			<SliderControl
-				label="Deposit Amount"
-				displayValue={String(config().depositAmount)}
-				value={config().depositAmount}
-				min={1}
-				max={255}
-				onChange={(value) => props.onSlimeConfigChange("depositAmount", value)}
-			/>
-
-			<SliderControl
-				label="Agent Speed"
-				displayValue={config().agentSpeed.toFixed(1)}
-				value={config().agentSpeed}
-				min={0.1}
-				max={5}
-				step={0.1}
-				onChange={(value) => props.onSlimeConfigChange("agentSpeed", value)}
-			/>
-
-			<SliderControl
-				label="Agent Count"
+				label="Total Agents"
 				displayValue={`${config().agentCount}%`}
 				value={config().agentCount}
 				min={0.5}

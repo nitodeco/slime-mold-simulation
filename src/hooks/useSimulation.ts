@@ -14,6 +14,7 @@ import {
 	createAgentPool,
 	DEFAULT_SLIME_CONFIG,
 	type SlimeConfig,
+	type SpeciesConfig,
 	stepSlime,
 } from "../core/slime";
 import {
@@ -54,7 +55,7 @@ export function useSimulation() {
 	const storedSettings = loadSimulationSettings();
 	const initialSettings = querySettings ?? storedSettings;
 
-	const [speed, setSpeed] = createSignal(initialSettings?.speed ?? 50);
+	const [speed, setSpeed] = createSignal(initialSettings?.speed ?? 80);
 	const [slimeConfig, setSlimeConfig] = createSignal<SlimeConfig>(
 		initialSettings?.slimeConfig
 			? {
@@ -117,12 +118,7 @@ export function useSimulation() {
 	function initAgents() {
 		const config = slimeConfig();
 		const count = calculateAgentCount(config);
-		agentsRef.current = createAgentPool(
-			count,
-			GRID_COLS,
-			GRID_ROWS,
-			config.spawnPattern,
-		);
+		agentsRef.current = createAgentPool(count, GRID_COLS, GRID_ROWS, config);
 	}
 
 	function tick() {
@@ -174,7 +170,7 @@ export function useSimulation() {
 			const config = slimeConfig();
 			const count = calculateAgentCount(config);
 
-			gpuSimulation.reinitAgents(count, config.spawnPattern);
+			gpuSimulation.reinitAgents(count);
 			gpuSimulation.render();
 		} else {
 			const current = currentBuffer();
@@ -196,16 +192,43 @@ export function useSimulation() {
 
 	function handleSlimeConfigChange(
 		key: keyof SlimeConfig,
-		value: number | string,
+		value: number | string | object,
+		speciesIndex?: number,
+		speciesKey?: keyof SpeciesConfig,
+		interactionRow?: number,
+		interactionCol?: number,
 	) {
-		const newConfig = {
-			...slimeConfig(),
-			[key]: value,
-		};
+		const current = slimeConfig();
+		let newConfig = { ...current };
+
+		if (speciesIndex !== undefined && speciesKey) {
+			const species = [...current.species];
+			species[speciesIndex] = {
+				...species[speciesIndex],
+				[speciesKey]: value as number | string,
+			};
+			newConfig.species = species as [
+				SpeciesConfig,
+				SpeciesConfig,
+				SpeciesConfig,
+			];
+		} else if (interactionRow !== undefined && interactionCol !== undefined) {
+			const interactions = current.interactions.map((row) => [...row]);
+			interactions[interactionRow][interactionCol] = value as number;
+			newConfig.interactions = interactions;
+		} else {
+			newConfig = {
+				...current,
+				[key]: value,
+			};
+		}
 
 		setSlimeConfig(newConfig);
 
-		const requiresReinit = key === "agentCount" || key === "spawnPattern";
+		const requiresReinit =
+			key === "agentCount" ||
+			key === "spawnPattern" ||
+			(speciesIndex !== undefined && speciesKey === "agentCount");
 
 		if (gpuAvailable() && useWebGPU() && gpuSimulation) {
 			gpuSimulation.setConfig(newConfig);
@@ -213,7 +236,7 @@ export function useSimulation() {
 			if (requiresReinit) {
 				const count = calculateAgentCount(newConfig);
 
-				gpuSimulation.reinitAgents(count, newConfig.spawnPattern);
+				gpuSimulation.reinitAgents(count);
 				gpuSimulation.clear();
 			}
 		} else {
@@ -229,33 +252,35 @@ export function useSimulation() {
 
 	function handleRandomize() {
 		const currentConfig = slimeConfig();
-		const randomSensorAngle =
-			Math.round(((Math.random() * 180 * Math.PI) / 180) * 100) / 100;
-		const randomTurnAngle =
-			Math.round(((Math.random() * 180 * Math.PI) / 180) * 100) / 100;
-		const randomSensorDist = Math.floor(Math.random() * 64) + 1;
-		const randomDecayRate =
-			Math.round((Math.random() * (20 - 0.1) + 0.1) * 100) / 100;
-		const randomDiffuseWeight = Math.round(Math.random() * 100) / 100;
-		const randomDepositAmount = Math.floor(Math.random() * 255) + 1;
-		const randomAgentSpeed =
-			Math.round((Math.random() * (5 - 0.1) + 0.1) * 100) / 100;
-		const randomAgentCount =
-			Math.round((Math.random() * (20 - 0.5) + 0.5) * 100) / 100;
-		const randomPreset =
-			COLOR_PRESET_NAMES[Math.floor(Math.random() * COLOR_PRESET_NAMES.length)];
+		const randomSpecies = currentConfig.species.map((s) => ({
+			...s,
+			sensorAngle:
+				Math.round(((Math.random() * 180 * Math.PI) / 180) * 100) / 100,
+			turnAngle:
+				Math.round(((Math.random() * 180 * Math.PI) / 180) * 100) / 100,
+			sensorDist: Math.floor(Math.random() * 64) + 1,
+			depositAmount: Math.floor(Math.random() * 255) + 1,
+			agentSpeed: Math.round((Math.random() * (5 - 0.1) + 0.1) * 100) / 100,
+			colorPreset:
+				COLOR_PRESET_NAMES[
+					Math.floor(Math.random() * COLOR_PRESET_NAMES.length)
+				],
+		})) as [SpeciesConfig, SpeciesConfig, SpeciesConfig];
+
+		const randomInteractions = Array(3)
+			.fill(0)
+			.map(() =>
+				Array(3)
+					.fill(0)
+					.map(() => Math.round((Math.random() * 2 - 1) * 10) / 10),
+			);
 
 		const newConfig: SlimeConfig = {
-			sensorAngle: randomSensorAngle,
-			turnAngle: randomTurnAngle,
-			sensorDist: randomSensorDist,
-			decayRate: randomDecayRate,
-			diffuseWeight: randomDiffuseWeight,
-			depositAmount: randomDepositAmount,
-			agentSpeed: randomAgentSpeed,
-			agentCount: randomAgentCount,
-			colorPreset: randomPreset,
-			spawnPattern: currentConfig.spawnPattern,
+			...currentConfig,
+			decayRate: Math.round((Math.random() * (20 - 0.1) + 0.1) * 100) / 100,
+			diffuseWeight: Math.round(Math.random() * 100) / 100,
+			species: randomSpecies,
+			interactions: randomInteractions,
 		};
 
 		setSlimeConfig(newConfig);
@@ -265,7 +290,7 @@ export function useSimulation() {
 
 			const count = calculateAgentCount(newConfig);
 
-			gpuSimulation.reinitAgents(count, newConfig.spawnPattern);
+			gpuSimulation.reinitAgents(count);
 			gpuSimulation.clear();
 			gpuSimulation.render();
 		} else {

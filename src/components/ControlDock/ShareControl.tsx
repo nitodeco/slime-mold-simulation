@@ -50,7 +50,6 @@ export const ShareControl = (props: Props) => {
 		try {
 			const shareUrl = props.getShareUrl();
 
-			// Update address bar so user can see/copy manually if needed
 			window.history.replaceState(null, "", shareUrl);
 
 			await copyText(shareUrl);

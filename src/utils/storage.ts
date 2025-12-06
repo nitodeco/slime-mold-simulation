@@ -1,7 +1,9 @@
-import {
-	COLOR_PRESET_NAMES,
-	type SlimeConfig,
-	type SpawnPattern,
+import { z } from "zod";
+import type {
+	ColorPresetName,
+	SlimeConfig,
+	SpawnPattern,
+	SpeciesConfig,
 } from "../core/slime";
 
 export interface SimulationSettings {
@@ -12,56 +14,59 @@ export interface SimulationSettings {
 
 export const SIMULATION_SETTINGS_KEY = "simulation-settings";
 
-const VALID_SPAWN_PATTERNS: SpawnPattern[] = [
+const colorPresetNameSchema = z.enum([
+	"neon",
+	"ocean",
+	"ember",
+	"toxic",
+	"void",
+	"sunset",
+	"forest",
+	"arctic",
+	"lava",
+	"plasma",
+	"aurora",
+	"fire",
+] satisfies [ColorPresetName, ...ColorPresetName[]]);
+
+const spawnPatternSchema = z.enum([
 	"random",
 	"center",
 	"circle",
 	"multiCircle",
 	"spiral",
-];
+] satisfies [SpawnPattern, ...SpawnPattern[]]);
 
-function isValidColorPreset(
-	value: unknown,
-): value is SlimeConfig["colorPreset"] {
-	return (
-		typeof value === "string" &&
-		COLOR_PRESET_NAMES.includes(value as SlimeConfig["colorPreset"])
-	);
-}
+const speciesConfigSchema: z.ZodType<SpeciesConfig> = z.object({
+	sensorAngle: z.number(),
+	turnAngle: z.number(),
+	sensorDist: z.number(),
+	agentSpeed: z.number(),
+	depositAmount: z.number(),
+	colorPreset: colorPresetNameSchema,
+	agentCount: z.number(),
+});
 
-function isValidSpawnPattern(value: unknown): value is SpawnPattern {
-	return (
-		typeof value === "string" &&
-		VALID_SPAWN_PATTERNS.includes(value as SpawnPattern)
-	);
-}
+const slimeConfigSchema: z.ZodType<SlimeConfig> = z.object({
+	decayRate: z.number(),
+	diffuseWeight: z.number(),
+	spawnPattern: spawnPatternSchema,
+	agentCount: z.number(),
+	species: z.tuple([
+		speciesConfigSchema,
+		speciesConfigSchema,
+		speciesConfigSchema,
+	]),
+	interactions: z
+		.array(z.tuple([z.number(), z.number(), z.number()]))
+		.length(3),
+});
 
-export function isValidSimulationSettings(
-	settings: unknown,
-): settings is SimulationSettings {
-	if (settings === null || typeof settings !== "object") {
-		return false;
-	}
-
-	const candidate = settings as SimulationSettings;
-
-	return (
-		typeof candidate.speed === "number" &&
-		typeof candidate.useWebGPU === "boolean" &&
-		candidate.slimeConfig !== undefined &&
-		typeof candidate.slimeConfig.sensorAngle === "number" &&
-		typeof candidate.slimeConfig.turnAngle === "number" &&
-		typeof candidate.slimeConfig.sensorDist === "number" &&
-		typeof candidate.slimeConfig.decayRate === "number" &&
-		typeof candidate.slimeConfig.diffuseWeight === "number" &&
-		typeof candidate.slimeConfig.depositAmount === "number" &&
-		typeof candidate.slimeConfig.agentSpeed === "number" &&
-		typeof candidate.slimeConfig.agentCount === "number" &&
-		isValidColorPreset(candidate.slimeConfig.colorPreset) &&
-		(candidate.slimeConfig.spawnPattern === undefined ||
-			isValidSpawnPattern(candidate.slimeConfig.spawnPattern))
-	);
-}
+const simulationSettingsSchema: z.ZodType<SimulationSettings> = z.object({
+	speed: z.number(),
+	slimeConfig: slimeConfigSchema,
+	useWebGPU: z.boolean(),
+});
 
 export function loadSimulationSettings(): SimulationSettings | null {
 	try {
@@ -70,19 +75,10 @@ export function loadSimulationSettings(): SimulationSettings | null {
 			return null;
 		}
 
-		const parsed = JSON.parse(stored) as SimulationSettings;
-		if (
-			(parsed as SimulationSettings).slimeConfig &&
-			!(parsed as SimulationSettings).slimeConfig.colorPreset
-		) {
-			(parsed as SimulationSettings).slimeConfig.colorPreset = "neon";
-		}
+		const parsed = JSON.parse(stored);
+		const result = simulationSettingsSchema.safeParse(parsed);
 
-		if (isValidSimulationSettings(parsed)) {
-			return parsed;
-		}
-
-		return null;
+		return result.success ? result.data : null;
 	} catch {
 		return null;
 	}
@@ -102,14 +98,10 @@ export function decodeSimulationSettings(
 	encoded: string,
 ): SimulationSettings | null {
 	try {
-		const parsed = JSON.parse(atob(encoded)) as SimulationSettings;
-		if (
-			(parsed as SimulationSettings).slimeConfig &&
-			!(parsed as SimulationSettings).slimeConfig.colorPreset
-		) {
-			(parsed as SimulationSettings).slimeConfig.colorPreset = "neon";
-		}
-		return isValidSimulationSettings(parsed) ? parsed : null;
+		const parsed = JSON.parse(atob(encoded));
+		const result = simulationSettingsSchema.safeParse(parsed);
+
+		return result.success ? result.data : null;
 	} catch {
 		return null;
 	}

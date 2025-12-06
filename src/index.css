@@ -72,38 +72,6 @@ body {
 	box-shadow: 1px 1px 0px 0px rgba(0, 0, 0, 0.5);
 }
 
-@keyframes slide-up-pixel {
-	from {
-		transform: translateY(calc(100% - 10px));
-		opacity: 0;
-	}
-	to {
-		transform: translateY(0);
-		opacity: 1;
-	}
-}
-
-@keyframes slide-down-pixel {
-	from {
-		transform: translateY(0);
-		opacity: 1;
-	}
-	to {
-		transform: translateY(calc(100% - 10px));
-		opacity: 0;
-	}
-}
-
-.dock-expand {
-	animation: slide-up-pixel 0.1s steps(10, end) forwards;
-	transform-origin: bottom center;
-}
-
-.dock-collapse {
-	animation: slide-down-pixel 0.1s steps(10, end) forwards;
-	transform-origin: bottom center;
-}
-
 .preset-list {
 	scrollbar-width: thin;
 	scrollbar-color: #4b5563 #1f2937;

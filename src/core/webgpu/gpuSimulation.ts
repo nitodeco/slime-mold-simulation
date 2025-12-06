@@ -57,9 +57,11 @@ interface GPUSimulationState {
 	currentSourceIsA: boolean;
 	currentConfig: SlimeConfig;
 	configDirty: boolean;
-	cachedLowColor: [number, number, number];
-	cachedMidColor: [number, number, number];
-	cachedHighColor: [number, number, number];
+	cachedSpeciesColors: Array<{
+		low: [number, number, number];
+		mid: [number, number, number];
+		high: [number, number, number];
+	}>;
 	gridTextureBytesPerRow: number;
 }
 
@@ -80,13 +82,23 @@ function updateRenderColors(
 	device: GPUDevice,
 	renderUniform: ConfigUniform,
 ): void {
-	const presetColors = getColorPresetFloats(state.currentConfig.colorPreset);
+	const currentColors = state.currentConfig.species.map((s) =>
+		getColorPresetFloats(s.colorPreset),
+	);
 
-	if (
-		colorsMatch(presetColors.low, state.cachedLowColor) &&
-		colorsMatch(presetColors.mid, state.cachedMidColor) &&
-		colorsMatch(presetColors.high, state.cachedHighColor)
-	) {
+	let needsUpdate = false;
+	for (let i = 0; i < currentColors.length; i++) {
+		if (
+			!colorsMatch(currentColors[i].low, state.cachedSpeciesColors[i].low) ||
+			!colorsMatch(currentColors[i].mid, state.cachedSpeciesColors[i].mid) ||
+			!colorsMatch(currentColors[i].high, state.cachedSpeciesColors[i].high)
+		) {
+			needsUpdate = true;
+			break;
+		}
+	}
+
+	if (!needsUpdate) {
 		return;
 	}
 
@@ -95,14 +107,10 @@ function updateRenderColors(
 		renderUniform,
 		state.width,
 		state.height,
-		presetColors.low,
-		presetColors.mid,
-		presetColors.high,
+		currentColors,
 	);
 
-	state.cachedLowColor = presetColors.low;
-	state.cachedMidColor = presetColors.mid;
-	state.cachedHighColor = presetColors.high;
+	state.cachedSpeciesColors = currentColors;
 }
 
 function createCachedBindGroups(
@@ -139,8 +147,9 @@ function createCachedBindGroups(
 			{ binding: 1, resource: { buffer: agentBuffers.positionsX } },
 			{ binding: 2, resource: { buffer: agentBuffers.positionsY } },
 			{ binding: 3, resource: { buffer: agentBuffers.angles } },
-			{ binding: 4, resource: { buffer: gridBuffers.bufferB } },
-			{ binding: 5, resource: { buffer: configUniform.buffer } },
+			{ binding: 4, resource: { buffer: agentBuffers.species } },
+			{ binding: 5, resource: { buffer: gridBuffers.bufferB } },
+			{ binding: 6, resource: { buffer: configUniform.buffer } },
 		],
 	});
 
@@ -151,8 +160,9 @@ function createCachedBindGroups(
 			{ binding: 1, resource: { buffer: agentBuffers.positionsX } },
 			{ binding: 2, resource: { buffer: agentBuffers.positionsY } },
 			{ binding: 3, resource: { buffer: agentBuffers.angles } },
-			{ binding: 4, resource: { buffer: gridBuffers.bufferA } },
-			{ binding: 5, resource: { buffer: configUniform.buffer } },
+			{ binding: 4, resource: { buffer: agentBuffers.species } },
+			{ binding: 5, resource: { buffer: gridBuffers.bufferA } },
+			{ binding: 6, resource: { buffer: configUniform.buffer } },
 		],
 	});
 
@@ -197,7 +207,7 @@ function copyGridBufferToTexture(
 	commandEncoder.copyBufferToTexture(
 		{
 			buffer: sourceBuffer,
-			bytesPerRow: state.gridTextureBytesPerRow,
+			bytesPerRow: state.width * 16,
 		},
 		{ texture: destinationTexture },
 		{ width: state.width, height: state.height },
@@ -224,7 +234,7 @@ export async function createGPUSimulation(
 		initialAgentCount,
 		width,
 		height,
-		initialConfig.spawnPattern,
+		initialConfig,
 	);
 	const configUniform = createConfigUniform(device);
 	const renderUniform = createRenderUniform(device);
@@ -259,10 +269,12 @@ export async function createGPUSimulation(
 		currentSourceIsA: true,
 		currentConfig: initialConfig,
 		configDirty: true,
-		cachedLowColor: emptyColor,
-		cachedMidColor: emptyColor,
-		cachedHighColor: emptyColor,
-		gridTextureBytesPerRow: width * 4,
+		cachedSpeciesColors: [
+			{ low: emptyColor, mid: emptyColor, high: emptyColor },
+			{ low: emptyColor, mid: emptyColor, high: emptyColor },
+			{ low: emptyColor, mid: emptyColor, high: emptyColor },
+		],
+		gridTextureBytesPerRow: width * 16, // RGBA32Uint = 16 bytes per pixel
 	};
 
 	return {
@@ -418,13 +430,22 @@ function reinitAgents(
 	state.agentBuffers.positionsX.destroy();
 	state.agentBuffers.positionsY.destroy();
 	state.agentBuffers.angles.destroy();
+	state.agentBuffers.species.destroy();
 
+	if (spawnPattern) {
+		state.currentConfig = {
+			...state.currentConfig,
+			spawnPattern,
+		};
+	}
+
+	// Reinit with current config to preserve species distribution
 	state.agentBuffers = createAgentBuffers(
 		device,
 		count,
 		state.width,
 		state.height,
-		spawnPattern ?? state.currentConfig.spawnPattern,
+		state.currentConfig,
 	);
 
 	state.cachedBindGroups = createCachedBindGroups(
@@ -483,7 +504,9 @@ async function exportScreenshot(
 ): Promise<Uint8Array> {
 	const { device } = state.context;
 
-	const presetColors = getColorPresetFloats(state.currentConfig.colorPreset);
+	const currentColors = state.currentConfig.species.map((s) =>
+		getColorPresetFloats(s.colorPreset),
+	);
 
 	/*
 	 * Specific render pipeline for export,
@@ -497,9 +520,7 @@ async function exportScreenshot(
 		exportRenderUniform,
 		state.width,
 		state.height,
-		presetColors.low,
-		presetColors.mid,
-		presetColors.high,
+		currentColors,
 	);
 
 	const offscreenTexture = device.createTexture({
