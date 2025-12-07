@@ -35,7 +35,7 @@ export const Popover = (props: PopoverProps) => {
 			{props.trigger({ isOpen: isOpen(), toggle })}
 			<Show when={isOpen()}>
 				<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 min-w-max">
-					<div class="bg-gray-800 border-2 border-gray-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] p-2 rounded-sm">
+					<div class="glass-panel p-2.5 rounded-xl">
 						{props.children({ close })}
 					</div>
 				</div>

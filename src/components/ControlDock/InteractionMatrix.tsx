@@ -62,9 +62,9 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 	};
 
 	return (
-		<div class="flex flex-col gap-4 bg-gray-900/30 p-3 rounded-sm border border-gray-700/50">
+		<div class="glass-panel-subtle flex flex-col gap-4 p-3 rounded-xl">
 			<div class="flex items-center justify-between">
-				<div class="flex items-center gap-1 text-xs font-bold text-gray-400 uppercase tracking-wider">
+				<div class="flex items-center gap-1 text-xs font-medium text-gray-200 uppercase tracking-wider">
 					<LockButton locked={props.locked} onToggle={props.onToggleLock} />
 					Interactions
 				</div>
@@ -73,7 +73,7 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 						<button
 							type="button"
 							onClick={toggle}
-							class="text-[10px] uppercase font-bold text-blue-400 hover:text-blue-300"
+							class="text-[10px] uppercase font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
 						>
 							Presets
 						</button>
@@ -86,7 +86,7 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 									<button
 										type="button"
 										onClick={() => applyPreset(preset.matrix, close)}
-										class="text-left px-2 py-1 text-xs hover:bg-gray-700 rounded-sm text-gray-300 hover:text-white transition-colors"
+										class="text-left px-2.5 py-1.5 text-xs hover:bg-white/10 rounded-xl text-gray-300 hover:text-white transition-all"
 									>
 										{preset.name}
 									</button>
@@ -136,9 +136,10 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 															Number.parseFloat(e.currentTarget.value),
 														)
 													}
-													class="w-full bg-gray-800 text-center text-xs p-1 rounded-sm border border-gray-700 focus:border-blue-500 outline-none appearance-none"
+													class="glass-input w-full text-center text-xs p-1.5 rounded-xl outline-none appearance-none"
 													style={{
-														"border-color": getCellColor(val),
+														"border-color":
+															getCellColor(val) || "rgba(255, 255, 255, 0.1)",
 													}}
 												/>
 											</div>
@@ -150,7 +151,7 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 					}}
 				</For>
 			</div>
-			<div class="text-[10px] text-gray-500 text-center italic">
+			<div class="text-[10px] text-gray-400 text-center italic">
 				Row species attracted to (positive) or repelled by (negative) Column
 				species
 			</div>

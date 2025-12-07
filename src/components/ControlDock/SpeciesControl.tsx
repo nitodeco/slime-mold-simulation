@@ -51,7 +51,7 @@ const SliderControl = (props: SliderControlProps) => {
 				onInput={(event) =>
 					props.onChange(Number.parseFloat(event.currentTarget.value))
 				}
-				class="pixel-slider w-full cursor-pointer"
+				class="glass-slider w-full cursor-pointer"
 			/>
 		</div>
 	);
@@ -87,9 +87,12 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 							<button
 								type="button"
 								onClick={toggle}
-								class="w-24 h-6 rounded-sm border-2 border-gray-600 hover:border-gray-400 transition-colors shadow-sm cursor-pointer"
+								class="w-24 h-7 rounded-xl cursor-pointer transition-all hover:scale-105"
 								style={{
 									"background-image": `linear-gradient(90deg, ${currentPreset.low}, ${currentPreset.mid}, ${currentPreset.high})`,
+									border: "1px solid rgba(255, 255, 255, 0.2)",
+									"box-shadow":
+										"0 3px 10px rgba(0, 0, 0, 0.2), inset 0 0.5px 0 rgba(255, 255, 255, 0.25)",
 								}}
 								aria-label="Select palette"
 							/>
@@ -109,13 +112,13 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 												props.onChange(props.index, "colorPreset", presetName);
 												close();
 											}}
-											class={`flex items-center gap-2 p-1 rounded-sm hover:bg-gray-700/50 transition-colors w-full text-left cursor-pointer ${
-												isActive ? "bg-gray-700/80" : ""
+											class={`flex items-center gap-2 p-1 rounded-lg hover:bg-white/10 transition-all w-full text-left cursor-pointer ${
+												isActive ? "bg-white/15" : ""
 											}`}
 										>
 											<div
-												class={`w-8 h-6 rounded-sm border ${
-													isActive ? "border-white" : "border-gray-600"
+												class={`w-8 h-6 rounded-lg border backdrop-blur-sm ${
+													isActive ? "border-white/40" : "border-white/20"
 												}`}
 												style={{
 													"background-image": `linear-gradient(90deg, ${presetColors.low}, ${presetColors.mid}, ${presetColors.high})`,
@@ -123,7 +126,7 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 											/>
 											<span
 												class={`text-xs uppercase font-bold tracking-wider ${
-													isActive ? "text-white" : "text-gray-400"
+													isActive ? "text-white" : "text-gray-300"
 												}`}
 											>
 												{presetName}
@@ -238,8 +241,8 @@ export const SpeciesTabs = (props: SpeciesTabsProps) => {
 	const [activeTab, setActiveTab] = createSignal(0);
 
 	return (
-		<div class="flex flex-col gap-4 bg-gray-900/30 p-3 rounded-sm border border-gray-700/50">
-			<div class="flex gap-1 border-b border-gray-700 pb-2">
+		<div class="glass-panel-subtle flex flex-col gap-4 p-3 rounded-xl">
+			<div class="flex gap-1 border-b border-white/10 pb-2">
 				<For each={[0, 1, 2]}>
 					{(index) => {
 						const preset = getColorPreset(props.configs[index].colorPreset);
@@ -247,10 +250,10 @@ export const SpeciesTabs = (props: SpeciesTabsProps) => {
 							<button
 								type="button"
 								onClick={() => setActiveTab(index)}
-								class={`flex-1 py-1 px-2 text-[10px] uppercase font-bold tracking-wider rounded-sm transition-all ${
+								class={`flex-1 py-1.5 px-2 text-[10px] uppercase font-medium tracking-wider rounded-xl transition-all ${
 									activeTab() === index
-										? "bg-gray-700 text-white border-b-2 border-white"
-										: "text-gray-500 hover:text-gray-300 hover:bg-gray-800"
+										? "glass-button text-white"
+										: "text-gray-400 hover:text-gray-200 hover:bg-white/5"
 								}`}
 							>
 								<div class="flex items-center justify-center gap-2">

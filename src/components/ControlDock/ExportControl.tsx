@@ -1,3 +1,4 @@
+import { Camera } from "lucide-solid";
 import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { Button } from "../Button";
 
@@ -81,7 +82,7 @@ export const ExportControl = (props: Props) => {
 				>
 					<Show
 						when={props.isRecording()}
-						fallback={<i class="hn hn-retro-camera w-5 h-5" />}
+						fallback={<Camera class="w-5 h-5" />}
 					>
 						<div class="w-5 h-5 bg-red-500 rounded-sm animate-pulse" />
 					</Show>
@@ -89,18 +90,18 @@ export const ExportControl = (props: Props) => {
 			</Button>
 
 			<Show when={dropdownOpen() && !props.isExporting()}>
-				<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 border-2 border-gray-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] min-w-[180px] z-20 pointer-events-auto flex flex-col rounded-sm">
-					<div class="p-2 border-b border-gray-600">
-						<div class="text-[10px] uppercase text-gray-400 mb-1 font-bold tracking-wider">
+				<div class="glass-panel absolute bottom-full left-1/2 -translate-x-1/2 mb-2 min-w-[180px] z-20 pointer-events-auto flex flex-col rounded-xl">
+					<div class="p-2.5 border-b border-white/10">
+						<div class="text-[10px] uppercase text-gray-200 mb-1.5 font-medium tracking-wider">
 							Video
 						</div>
 						<button
 							type="button"
 							onClick={handleToggleRecording}
-							class={`w-full px-2 py-1.5 text-left text-xs border transition-colors flex items-center gap-2 cursor-pointer rounded-sm ${
+							class={`w-full px-2.5 py-2 text-left text-xs border transition-all flex items-center gap-2 cursor-pointer rounded-xl ${
 								props.isRecording()
-									? "border-red-500/50 bg-red-900/20 text-red-200 hover:bg-red-900/40"
-									: "border-transparent text-gray-200 hover:bg-gray-700"
+									? "border-red-400/30 bg-red-500/20 text-red-200 hover:bg-red-500/30"
+									: "border-transparent text-gray-200 hover:bg-white/10"
 							}`}
 						>
 							<div
@@ -114,14 +115,14 @@ export const ExportControl = (props: Props) => {
 						</button>
 					</div>
 
-					<div class="p-2">
-						<div class="text-[10px] uppercase text-gray-400 mb-1 font-bold tracking-wider">
+					<div class="p-2.5">
+						<div class="text-[10px] uppercase text-gray-200 mb-1.5 font-medium tracking-wider">
 							Snapshot
 						</div>
 						<button
 							type="button"
 							onClick={handleViewportExport}
-							class="w-full px-2 py-1.5 text-left text-xs text-gray-200 hover:bg-gray-700 border border-transparent cursor-pointer rounded-sm"
+							class="w-full px-2.5 py-2 text-left text-xs text-gray-200 hover:bg-white/10 border border-transparent cursor-pointer rounded-xl transition-all"
 						>
 							Viewport ({props.viewportWidth}x{props.viewportHeight})
 						</button>
@@ -129,7 +130,7 @@ export const ExportControl = (props: Props) => {
 							<button
 								type="button"
 								onClick={() => handleExport(preset.width, preset.height)}
-								class="w-full px-2 py-1.5 text-left text-xs text-gray-200 hover:bg-gray-700 border border-transparent cursor-pointer rounded-sm"
+								class="w-full px-2.5 py-2 text-left text-xs text-gray-200 hover:bg-white/10 border border-transparent cursor-pointer rounded-xl transition-all"
 							>
 								{preset.label} ({preset.width}x{preset.height})
 							</button>

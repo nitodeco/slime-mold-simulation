@@ -39,7 +39,7 @@ const SliderControl = (props: SliderControlProps) => {
 				onInput={(event) =>
 					props.onChange(Number.parseFloat(event.currentTarget.value))
 				}
-				class="pixel-slider w-full cursor-pointer"
+				class="glass-slider w-full cursor-pointer"
 			/>
 		</div>
 	);

@@ -1,3 +1,4 @@
+import { Link } from "lucide-solid";
 import { createSignal, Show } from "solid-js";
 import { Button } from "../Button";
 
@@ -77,7 +78,7 @@ export const ShareControl = (props: Props) => {
 						when={shareState() === "error"}
 						fallback={
 							<>
-								<i class="hn hn-link w-5 h-5" />
+								<Link class="w-5 h-5" />
 								<span class="text-sm font-medium">Share</span>
 							</>
 						}

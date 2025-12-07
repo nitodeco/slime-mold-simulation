@@ -1,5 +1,4 @@
 import { render } from "solid-js/web";
-import "@hackernoon/pixel-icon-library/fonts/iconfont.css";
 import "./index.css";
 import App from "./App";
 

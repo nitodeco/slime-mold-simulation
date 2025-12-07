@@ -10,8 +10,8 @@ export const SpeedControl = (props: SpeedControlProps) => {
 	}
 
 	return (
-		<div class="flex items-center gap-3 bg-gray-900/40 px-3 py-2 border-2 border-gray-700/30 rounded-sm">
-			<span class="text-gray-400 text-[10px] uppercase tracking-wider font-bold">
+		<div class="glass-panel-subtle flex items-center gap-3 px-3 py-2 rounded-xl">
+			<span class="text-gray-200 text-[10px] uppercase tracking-wider font-medium">
 				Speed
 			</span>
 			<input
@@ -20,7 +20,7 @@ export const SpeedControl = (props: SpeedControlProps) => {
 				max="100"
 				value={props.speed()}
 				onInput={handleInput}
-				class="pixel-slider w-24 cursor-pointer"
+				class="glass-slider w-24 cursor-pointer"
 			/>
 		</div>
 	);

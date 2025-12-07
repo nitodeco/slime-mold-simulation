@@ -75,7 +75,7 @@ export const ControlDock = (props: Props) => {
 			<div class="relative w-full max-w-[95vw] md:max-w-6xl">
 				<CollapseButton collapsed={collapsed} onClick={handleToggle} />
 				<div
-					class={`relative pointer-events-auto bg-gray-800/95 border-2 border-gray-600 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.6)] pt-2 pb-4 px-4 flex flex-col gap-3 w-full rounded-sm`}
+					class={`glass-panel relative pointer-events-auto pt-2 pb-4 px-4 flex flex-col gap-3 w-full rounded-2xl`}
 				>
 					<div class="flex flex-row flex-wrap items-center justify-center gap-2 md:gap-4 shrink-0 z-20 relative">
 						<PlaybackControls
@@ -99,7 +99,7 @@ export const ControlDock = (props: Props) => {
 						style={{ "grid-template-rows": collapsed() ? "0fr" : "1fr" }}
 					>
 						<div class="overflow-hidden">
-							<div class="flex flex-col gap-4 pt-3 border-t border-gray-700">
+							<div class="flex flex-col gap-4 pt-3 border-t border-white/10">
 								<div class="flex flex-row flex-wrap items-center justify-center gap-3 md:gap-4">
 									<SpeedControl
 										speed={props.speed}

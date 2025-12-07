@@ -10,13 +10,14 @@ interface Props {
 
 export const Button = (props: Props) => {
 	const baseClasses =
-		"px-3 py-1 border-2 border-gray-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer rounded-sm";
+		"glass-button px-3 py-1.5 text-gray-100 cursor-pointer rounded-xl";
 
 	const variantClasses = {
-		default: "bg-gray-700 text-gray-200 hover:bg-gray-600",
-		play: "bg-green-900/50 text-green-200 hover:bg-green-900/70",
-		stop: "bg-red-900/50 text-red-200 hover:bg-red-900/70",
-		accent: "bg-cyan-700 text-cyan-100 hover:bg-cyan-600 border-cyan-500",
+		default: "",
+		play: "!bg-gradient-to-br !from-green-500/25 !to-green-600/15 !border-green-400/25 hover:!border-green-400/40 text-green-100",
+		stop: "!bg-gradient-to-br !from-red-500/25 !to-red-600/15 !border-red-400/25 hover:!border-red-400/40 text-red-100",
+		accent:
+			"!bg-gradient-to-br !from-cyan-500/25 !to-cyan-600/15 !border-cyan-400/25 hover:!border-cyan-400/40 text-cyan-100",
 	};
 
 	const variant = props.variant ?? "default";

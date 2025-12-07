@@ -1,3 +1,4 @@
+import { Pause, Play, Shuffle, Trash2 } from "lucide-solid";
 import { Button } from "../Button";
 
 interface PlaybackControlsProps {
@@ -16,11 +17,7 @@ export const PlaybackControls = (props: PlaybackControlsProps) => {
 				class="px-4 py-2 min-w-[48px] flex items-center justify-center"
 				aria-label={props.running() ? "Pause" : "Play"}
 			>
-				{props.running() ? (
-					<i class="hn hn-pause w-5 h-5" />
-				) : (
-					<i class="hn hn-play w-5 h-5" />
-				)}
+				{props.running() ? <Pause class="w-5 h-5" /> : <Play class="w-5 h-5" />}
 			</Button>
 
 			<Button
@@ -29,17 +26,17 @@ export const PlaybackControls = (props: PlaybackControlsProps) => {
 				class="px-4 py-2 min-w-[48px] flex items-center justify-center"
 				aria-label="Randomize settings"
 			>
-				<i class="hn hn-shuffle w-5 h-5" />
+				<Shuffle class="w-5 h-5" />
 			</Button>
 
-			<div class="h-8 w-px bg-gray-700 mx-2 hidden md:block" />
+			<div class="h-8 w-px bg-white/10 mx-2 hidden md:block" />
 
 			<Button
 				onClick={props.onClear}
 				class="px-4 py-2 min-w-[48px] flex items-center justify-center"
 				aria-label="Clear"
 			>
-				<i class="hn hn-trash w-5 h-5" />
+				<Trash2 class="w-5 h-5" />
 			</Button>
 		</div>
 	);
