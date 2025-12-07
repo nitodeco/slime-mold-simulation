@@ -7,6 +7,7 @@ interface SpawnPatternControlProps {
 }
 
 const SPAWN_PATTERN_OPTIONS: { value: SpawnPattern; label: string }[] = [
+	{ value: "random", label: "Even" },
 	{ value: "center", label: "Center" },
 	{ value: "circle", label: "Circle" },
 	{ value: "multiCircle", label: "Multi-Circle" },
