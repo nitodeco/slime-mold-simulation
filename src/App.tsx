@@ -2,11 +2,9 @@ import { For, Show } from "solid-js";
 import { Canvas } from "./components/Canvas";
 import { ControlDock } from "./components/ControlDock/ControlDock";
 import { ShareControl } from "./components/ControlDock/ShareControl";
-import { MobileWarningDialog } from "./components/MobileWarningDialog";
 import { PerformancePanel } from "./components/PerformancePanel";
 import { WebGPUWarningDialog } from "./components/WebGPUWarningDialog";
 import { useGridRenderer } from "./hooks/useGridRenderer";
-import { useIsMobile } from "./hooks/useIsMobile";
 import { useSimulation } from "./hooks/useSimulation";
 import { useViewport } from "./hooks/useViewport";
 
@@ -15,7 +13,6 @@ const App = () => {
 
 	const viewportHook = useViewport();
 	const simulationHook = useSimulation();
-	const isMobile = useIsMobile();
 
 	useGridRenderer(
 		() => canvasRef,
@@ -74,10 +71,6 @@ const App = () => {
 				agentCount={simulationHook.agentCount}
 				stepCount={simulationHook.stepCount}
 			/>
-
-			<Show when={isMobile()}>
-				<MobileWarningDialog />
-			</Show>
 
 			<Show when={simulationHook.webGPUSupported() === false}>
 				<WebGPUWarningDialog />
