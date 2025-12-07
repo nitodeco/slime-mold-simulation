@@ -132,8 +132,9 @@ export const ControlDock = (props: Props) => {
 					}}
 				>
 					<div
+						class={`pointer-events-auto ${collapsed() ? "" : "max-h-[75dvh] md:max-h-[calc(100vh-120px)]"}`}
 						style={{
-							overflow: isTransitioning() || collapsed() ? "hidden" : "visible",
+							overflow: isTransitioning() || collapsed() ? "hidden" : "auto",
 						}}
 					>
 						<div
