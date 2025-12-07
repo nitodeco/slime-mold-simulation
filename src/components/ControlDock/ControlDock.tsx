@@ -152,12 +152,12 @@ export const ControlDock = (props: Props) => {
 									onSpeedChange={props.onSpeedChange}
 								/>
 								<SpawnPatternControl
-									spawnPattern={() => props.slimeConfig().spawnPattern}
-									locked={props.lockedSettings().spawnPattern}
-									onSpawnPatternChange={(pattern: SpawnPattern) =>
-										props.onSlimeConfigChange("spawnPattern", pattern)
+									enabledSpawnPatterns={() =>
+										props.slimeConfig().enabledSpawnPatterns
 									}
-									onToggleLock={() => props.onToggleLock("spawnPattern")}
+									onSpawnPatternsChange={(patterns: SpawnPattern[]) =>
+										props.onSlimeConfigChange("enabledSpawnPatterns", patterns)
+									}
 								/>
 								<Button
 									onClick={props.onToggleSimulationMode}

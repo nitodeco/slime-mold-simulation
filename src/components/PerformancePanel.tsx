@@ -20,7 +20,7 @@ function getFrameTimeColor(frameTime: number): string {
 	return "text-gray-100";
 }
 
-export const PerformancePanel: React.FC<Props> = (props) => {
+export const PerformancePanel = (props: Props) => {
 	return (
 		<div class="glass-panel absolute top-4 right-4 text-white px-3 py-2 rounded-lg font-mono text-[11px] z-20 pointer-events-none select-none">
 			<div class="grid grid-cols-[auto_1fr_auto_auto_1fr] gap-x-2 gap-y-0.5 items-center">
@@ -48,7 +48,7 @@ export const PerformancePanel: React.FC<Props> = (props) => {
 					{props.agentCount().toLocaleString()}
 				</span>
 
-				<span class="text-gray-400">Grid</span>
+				<span class="text-gray-400">Resolution</span>
 				<span
 					class="tabular-nums text-right text-gray-100"
 					style={{ "grid-column": "2 / -1" }}

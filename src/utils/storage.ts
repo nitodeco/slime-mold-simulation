@@ -25,7 +25,7 @@ export interface LockedSettings {
 	decayRate: boolean;
 	diffuseWeight: boolean;
 	agentCount: boolean;
-	spawnPattern: boolean;
+	enabledSpawnPatterns: SpawnPattern[];
 	interactions: boolean;
 	species: [
 		SpeciesLockedSettings,
@@ -48,7 +48,7 @@ export const DEFAULT_LOCKED_SETTINGS: LockedSettings = {
 	decayRate: false,
 	diffuseWeight: false,
 	agentCount: false,
-	spawnPattern: false,
+	enabledSpawnPatterns: ["center", "circle", "multiCircle", "spiral"],
 	interactions: false,
 	species: [
 		{ ...DEFAULT_SPECIES_LOCKED_SETTINGS },
@@ -125,10 +125,23 @@ function isValidSlimeConfig(value: unknown): value is SlimeConfig {
 	if (
 		typeof config.decayRate !== "number" ||
 		typeof config.diffuseWeight !== "number" ||
-		!isValidSpawnPattern(config.spawnPattern) ||
 		typeof config.agentCount !== "number"
 	) {
 		return false;
+	}
+
+	if (!Array.isArray(config.enabledSpawnPatterns)) {
+		return false;
+	}
+
+	if (config.enabledSpawnPatterns.length === 0) {
+		return false;
+	}
+
+	for (const pattern of config.enabledSpawnPatterns) {
+		if (!isValidSpawnPattern(pattern)) {
+			return false;
+		}
 	}
 
 	if (!Array.isArray(config.species) || config.species.length !== 3) {
@@ -178,6 +191,22 @@ function isValidSimulationSettings(
 	);
 }
 
+function migrateSlimeConfig(config: Record<string, unknown>): void {
+	if ("spawnPattern" in config && !("enabledSpawnPatterns" in config)) {
+		const oldPattern = config.spawnPattern;
+		if (isValidSpawnPattern(oldPattern)) {
+			const patternsWithoutRandom = VALID_SPAWN_PATTERNS.filter(
+				(pattern) => pattern !== "random",
+			);
+			config.enabledSpawnPatterns =
+				oldPattern === "random"
+					? patternsWithoutRandom
+					: [oldPattern as SpawnPattern];
+			delete config.spawnPattern;
+		}
+	}
+}
+
 export function loadSimulationSettings(): SimulationSettings | null {
 	try {
 		const stored = localStorage.getItem(SIMULATION_SETTINGS_KEY);
@@ -186,6 +215,9 @@ export function loadSimulationSettings(): SimulationSettings | null {
 		}
 
 		const parsed = JSON.parse(stored);
+		if (parsed?.slimeConfig) {
+			migrateSlimeConfig(parsed.slimeConfig);
+		}
 		return isValidSimulationSettings(parsed) ? parsed : null;
 	} catch {
 		return null;
@@ -244,10 +276,19 @@ function isValidLockedSettings(value: unknown): value is LockedSettings {
 		typeof settings.decayRate !== "boolean" ||
 		typeof settings.diffuseWeight !== "boolean" ||
 		typeof settings.agentCount !== "boolean" ||
-		typeof settings.spawnPattern !== "boolean" ||
 		typeof settings.interactions !== "boolean"
 	) {
 		return false;
+	}
+
+	if (!Array.isArray(settings.enabledSpawnPatterns)) {
+		return false;
+	}
+
+	for (const pattern of settings.enabledSpawnPatterns) {
+		if (!isValidSpawnPattern(pattern)) {
+			return false;
+		}
 	}
 
 	if (!Array.isArray(settings.species) || settings.species.length !== 3) {
@@ -261,6 +302,23 @@ function isValidLockedSettings(value: unknown): value is LockedSettings {
 	);
 }
 
+function migrateLockedSettings(settings: Record<string, unknown>): void {
+	if ("spawnPattern" in settings && !("enabledSpawnPatterns" in settings)) {
+		const oldLocked = settings.spawnPattern;
+		if (typeof oldLocked === "boolean") {
+			if (oldLocked) {
+				settings.enabledSpawnPatterns = [];
+			} else {
+				const patternsWithoutRandom = VALID_SPAWN_PATTERNS.filter(
+					(pattern) => pattern !== "random",
+				);
+				settings.enabledSpawnPatterns = patternsWithoutRandom;
+			}
+			delete settings.spawnPattern;
+		}
+	}
+}
+
 export function loadLockedSettings(): LockedSettings | null {
 	try {
 		const stored = localStorage.getItem(LOCKED_SETTINGS_KEY);
@@ -269,6 +327,7 @@ export function loadLockedSettings(): LockedSettings | null {
 		}
 
 		const parsed = JSON.parse(stored);
+		migrateLockedSettings(parsed);
 		return isValidLockedSettings(parsed) ? parsed : null;
 	} catch {
 		return null;

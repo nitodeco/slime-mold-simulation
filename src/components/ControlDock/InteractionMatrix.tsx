@@ -120,7 +120,6 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 								</div>
 								<For each={[0, 1, 2]}>
 									{(col) => {
-										const val = props.config.interactions[row][col];
 										return (
 											<div class="relative group">
 												<input
@@ -128,7 +127,7 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 													min="-1"
 													max="1"
 													step="0.1"
-													value={val}
+													value={props.config.interactions[row][col]}
 													onInput={(e) =>
 														props.onChange(
 															row,
@@ -139,7 +138,9 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 													class="glass-input w-full text-center text-xs p-1.5 rounded-xl outline-none appearance-none cursor-pointer"
 													style={{
 														"border-color":
-															getCellColor(val) || "rgba(255, 255, 255, 0.1)",
+															getCellColor(
+																props.config.interactions[row][col],
+															) || "rgba(255, 255, 255, 0.1)",
 													}}
 												/>
 											</div>

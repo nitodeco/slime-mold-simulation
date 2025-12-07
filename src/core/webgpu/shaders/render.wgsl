@@ -63,13 +63,35 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return vec4<f32>(0.0, 0.0, 0.0, 1.0);
   }
 
-  let pixelX = u32(min(uv.x * config.size.x, config.size.x - 1.0));
-  let pixelY = u32(min(uv.y * config.size.y, config.size.y - 1.0));
-  let texel = textureLoad(gridTexture, vec2u(pixelX, pixelY), 0);
+  let texCoord = uv * config.size - 0.5;
+  let texelCoord = floor(texCoord);
+  let fraction = fract(texCoord);
   
-  let val1 = f32(texel.r) / SCALE;
-  let val2 = f32(texel.g) / SCALE;
-  let val3 = f32(texel.b) / SCALE;
+  let x0 = u32(clamp(texelCoord.x, 0.0, config.size.x - 1.0));
+  let x1 = u32(clamp(texelCoord.x + 1.0, 0.0, config.size.x - 1.0));
+  let y0 = u32(clamp(texelCoord.y, 0.0, config.size.y - 1.0));
+  let y1 = u32(clamp(texelCoord.y + 1.0, 0.0, config.size.y - 1.0));
+  
+  let texel00 = textureLoad(gridTexture, vec2u(x0, y0), 0);
+  let texel10 = textureLoad(gridTexture, vec2u(x1, y0), 0);
+  let texel01 = textureLoad(gridTexture, vec2u(x0, y1), 0);
+  let texel11 = textureLoad(gridTexture, vec2u(x1, y1), 0);
+  
+  let val1 = mix(
+    mix(f32(texel00.r), f32(texel10.r), fraction.x),
+    mix(f32(texel01.r), f32(texel11.r), fraction.x),
+    fraction.y
+  ) / SCALE;
+  let val2 = mix(
+    mix(f32(texel00.g), f32(texel10.g), fraction.x),
+    mix(f32(texel01.g), f32(texel11.g), fraction.x),
+    fraction.y
+  ) / SCALE;
+  let val3 = mix(
+    mix(f32(texel00.b), f32(texel10.b), fraction.x),
+    mix(f32(texel01.b), f32(texel11.b), fraction.x),
+    fraction.y
+  ) / SCALE;
 
   let intensity1 = clamp(val1 / 255.0, 0.0, 1.0);
   let intensity2 = clamp(val2 / 255.0, 0.0, 1.0);

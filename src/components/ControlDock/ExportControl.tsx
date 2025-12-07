@@ -27,9 +27,22 @@ export const ExportControl = (props: Props) => {
 	const [dropdownOpen, setDropdownOpen] = createSignal(false);
 	let containerRef: HTMLDivElement | undefined;
 
+	function isPortraitViewport() {
+		return props.viewportHeight > props.viewportWidth;
+	}
+
+	function getOrientedDimensions(width: number, height: number) {
+		const isPortrait = isPortraitViewport();
+		if (isPortrait && width > height) {
+			return { width: height, height: width };
+		}
+		return { width, height };
+	}
+
 	function handleExport(width: number, height: number) {
 		setDropdownOpen(false);
-		props.onExport(width, height);
+		const oriented = getOrientedDimensions(width, height);
+		props.onExport(oriented.width, oriented.height);
 	}
 
 	function handleViewportExport() {
@@ -131,15 +144,21 @@ export const ExportControl = (props: Props) => {
 						>
 							Viewport ({props.viewportWidth}x{props.viewportHeight})
 						</button>
-						{RESOLUTION_PRESETS.map((preset) => (
-							<button
-								type="button"
-								onClick={() => handleExport(preset.width, preset.height)}
-								class="w-full px-2.5 py-2 text-left text-xs text-gray-200 hover:bg-white/10 border border-transparent cursor-pointer rounded-xl transition-all"
-							>
-								{preset.label} ({preset.width}x{preset.height})
-							</button>
-						))}
+						{RESOLUTION_PRESETS.map((preset) => {
+							const oriented = getOrientedDimensions(
+								preset.width,
+								preset.height,
+							);
+							return (
+								<button
+									type="button"
+									onClick={() => handleExport(preset.width, preset.height)}
+									class="w-full px-2.5 py-2 text-left text-xs text-gray-200 hover:bg-white/10 border border-transparent cursor-pointer rounded-xl transition-all"
+								>
+									{preset.label} ({oriented.width}x{oriented.height})
+								</button>
+							);
+						})}
 					</div>
 				</div>
 			</Show>

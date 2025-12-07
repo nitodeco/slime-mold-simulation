@@ -1,4 +1,4 @@
-import type { SlimeConfig } from "../slime";
+import type { SlimeConfig, SpawnPattern } from "../slime";
 import { generateAgentPositions } from "../spawnPatterns";
 
 export interface GridBuffers {
@@ -90,6 +90,7 @@ export function createAgentBuffers(
 	width: number,
 	height: number,
 	config: SlimeConfig,
+	spawnPattern?: SpawnPattern,
 ): AgentBuffers {
 	const size = count * 4;
 
@@ -129,8 +130,19 @@ export function createAgentBuffers(
 		label: "Agent Species",
 	});
 
+	const selectedPattern =
+		spawnPattern ??
+		(() => {
+			const enabledPatterns =
+				config.enabledSpawnPatterns.length > 0
+					? config.enabledSpawnPatterns
+					: ["center", "circle", "multiCircle", "spiral"];
+			return enabledPatterns[
+				Math.floor(Math.random() * enabledPatterns.length)
+			];
+		})();
 	const { xPositions, yPositions, angles } = generateAgentPositions(
-		config.spawnPattern,
+		selectedPattern,
 		count,
 		width,
 		height,

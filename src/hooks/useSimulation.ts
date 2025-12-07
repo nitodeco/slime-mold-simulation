@@ -16,7 +16,6 @@ import {
 	type SlimeConfig,
 	type SpeciesConfig,
 	stepSlime,
-	VALID_SPAWN_PATTERNS,
 } from "../core/slime";
 import {
 	createGPUSimulation,
@@ -244,7 +243,7 @@ export function useSimulation() {
 
 		const requiresReinit =
 			key === "agentCount" ||
-			key === "spawnPattern" ||
+			key === "enabledSpawnPatterns" ||
 			(speciesIndex !== undefined && speciesKey === "agentCount");
 
 		if (gpuAvailable() && useWebGPU() && gpuSimulation) {
@@ -369,14 +368,10 @@ export function useSimulation() {
 							}),
 					);
 
-		const spawnPatternsWithoutRandom = VALID_SPAWN_PATTERNS.filter(
-			(pattern) => pattern !== "random",
-		);
-		const randomSpawnPattern = locks.spawnPattern
-			? currentConfig.spawnPattern
-			: spawnPatternsWithoutRandom[
-					Math.floor(Math.random() * spawnPatternsWithoutRandom.length)
-				];
+		const enabledPatterns = currentConfig.enabledSpawnPatterns;
+
+		const randomSpawnPattern =
+			enabledPatterns[Math.floor(Math.random() * enabledPatterns.length)];
 
 		const newConfig: SlimeConfig = {
 			...currentConfig,
@@ -389,7 +384,7 @@ export function useSimulation() {
 			agentCount: locks.agentCount
 				? currentConfig.agentCount
 				: Math.round(clampedGaussianRandom(5, 20, 10, 4) * 100) / 100,
-			spawnPattern: randomSpawnPattern,
+			enabledSpawnPatterns: currentConfig.enabledSpawnPatterns,
 			species: randomSpecies,
 			interactions: randomInteractions,
 		};

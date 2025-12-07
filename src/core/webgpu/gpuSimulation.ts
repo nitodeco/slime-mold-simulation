@@ -432,13 +432,6 @@ function reinitAgents(
 	state.agentBuffers.angles.destroy();
 	state.agentBuffers.species.destroy();
 
-	if (spawnPattern) {
-		state.currentConfig = {
-			...state.currentConfig,
-			spawnPattern,
-		};
-	}
-
 	// Reinit with current config to preserve species distribution
 	state.agentBuffers = createAgentBuffers(
 		device,
@@ -446,6 +439,7 @@ function reinitAgents(
 		state.width,
 		state.height,
 		state.currentConfig,
+		spawnPattern,
 	);
 
 	state.cachedBindGroups = createCachedBindGroups(
