@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import {
 	COLOR_PRESETS,
 	type ColorPreset,
@@ -6,6 +6,8 @@ import {
 	getColorPreset,
 	type SpeciesConfig,
 } from "../../core/slime";
+import type { SpeciesLockedSettings } from "../../utils/storage";
+import { LockButton } from "../LockButton";
 import { Popover } from "../Popover";
 
 const presetEntries = Object.entries(COLOR_PRESETS) as [
@@ -21,13 +23,23 @@ interface SliderControlProps {
 	max: number;
 	step?: number;
 	onChange: (value: number) => void;
+	locked?: boolean;
+	onToggleLock?: () => void;
 }
 
 const SliderControl = (props: SliderControlProps) => {
 	return (
 		<div class="flex flex-col gap-1">
-			<div class="flex justify-between text-[10px] uppercase tracking-wider font-bold text-gray-400">
-				<span>{props.label}</span>
+			<div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-bold text-gray-400">
+				<div class="flex items-center gap-1">
+					<Show when={props.onToggleLock !== undefined}>
+						<LockButton
+							locked={props.locked ?? false}
+							onToggle={() => props.onToggleLock?.()}
+						/>
+					</Show>
+					<span>{props.label}</span>
+				</div>
 				<span>{props.displayValue}</span>
 			</div>
 			<input
@@ -48,18 +60,24 @@ const SliderControl = (props: SliderControlProps) => {
 interface SpeciesControlProps {
 	index: number;
 	config: SpeciesConfig;
+	lockedSettings: SpeciesLockedSettings;
 	onChange: (
 		index: number,
 		key: keyof SpeciesConfig,
 		value: SpeciesConfig[keyof SpeciesConfig],
 	) => void;
+	onToggleLock: (key: keyof SpeciesLockedSettings) => void;
 }
 
 export const SpeciesControl = (props: SpeciesControlProps) => {
 	return (
 		<div class="flex flex-col gap-4">
 			<div class="flex items-center justify-between">
-				<div class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+				<div class="flex items-center gap-1 text-xs font-bold text-gray-400 uppercase tracking-wider">
+					<LockButton
+						locked={props.lockedSettings.colorPreset}
+						onToggle={() => props.onToggleLock("colorPreset")}
+					/>
 					Color Palette
 				</div>
 				<Popover
@@ -129,6 +147,8 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 					onChange={(value) =>
 						props.onChange(props.index, "sensorAngle", (value * Math.PI) / 180)
 					}
+					locked={props.lockedSettings.sensorAngle}
+					onToggleLock={() => props.onToggleLock("sensorAngle")}
 				/>
 
 				<SliderControl
@@ -140,6 +160,8 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 					onChange={(value) =>
 						props.onChange(props.index, "turnAngle", (value * Math.PI) / 180)
 					}
+					locked={props.lockedSettings.turnAngle}
+					onToggleLock={() => props.onToggleLock("turnAngle")}
 				/>
 
 				<SliderControl
@@ -149,6 +171,8 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 					min={1}
 					max={64}
 					onChange={(value) => props.onChange(props.index, "sensorDist", value)}
+					locked={props.lockedSettings.sensorDist}
+					onToggleLock={() => props.onToggleLock("sensorDist")}
 				/>
 
 				<SliderControl
@@ -160,6 +184,8 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 					onChange={(value) =>
 						props.onChange(props.index, "depositAmount", value)
 					}
+					locked={props.lockedSettings.depositAmount}
+					onToggleLock={() => props.onToggleLock("depositAmount")}
 				/>
 
 				<SliderControl
@@ -170,6 +196,8 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 					max={5}
 					step={0.1}
 					onChange={(value) => props.onChange(props.index, "agentSpeed", value)}
+					locked={props.lockedSettings.agentSpeed}
+					onToggleLock={() => props.onToggleLock("agentSpeed")}
 				/>
 
 				<SliderControl
@@ -180,6 +208,8 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 					max={100}
 					step={5}
 					onChange={(value) => props.onChange(props.index, "agentCount", value)}
+					locked={props.lockedSettings.agentCount}
+					onToggleLock={() => props.onToggleLock("agentCount")}
 				/>
 			</div>
 		</div>
@@ -188,10 +218,19 @@ export const SpeciesControl = (props: SpeciesControlProps) => {
 
 interface SpeciesTabsProps {
 	configs: [SpeciesConfig, SpeciesConfig, SpeciesConfig];
+	lockedSettings: [
+		SpeciesLockedSettings,
+		SpeciesLockedSettings,
+		SpeciesLockedSettings,
+	];
 	onChange: (
 		index: number,
 		key: keyof SpeciesConfig,
 		value: SpeciesConfig[keyof SpeciesConfig],
+	) => void;
+	onToggleLock: (
+		speciesIndex: number,
+		key: keyof SpeciesLockedSettings,
 	) => void;
 }
 
@@ -208,7 +247,7 @@ export const SpeciesTabs = (props: SpeciesTabsProps) => {
 							<button
 								type="button"
 								onClick={() => setActiveTab(index)}
-								class={`flex-1 py-1 px-2 text-[10px] uppercase font-bold tracking-wider rounded-t-sm transition-all ${
+								class={`flex-1 py-1 px-2 text-[10px] uppercase font-bold tracking-wider rounded-sm transition-all ${
 									activeTab() === index
 										? "bg-gray-700 text-white border-b-2 border-white"
 										: "text-gray-500 hover:text-gray-300 hover:bg-gray-800"
@@ -230,7 +269,9 @@ export const SpeciesTabs = (props: SpeciesTabsProps) => {
 			<SpeciesControl
 				index={activeTab()}
 				config={props.configs[activeTab()]}
+				lockedSettings={props.lockedSettings[activeTab()]}
 				onChange={props.onChange}
+				onToggleLock={(key) => props.onToggleLock(activeTab(), key)}
 			/>
 		</div>
 	);

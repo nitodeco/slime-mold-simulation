@@ -49,6 +49,7 @@ const App = () => {
 				running={simulationHook.running}
 				speed={simulationHook.speed}
 				slimeConfig={simulationHook.slimeConfig}
+				lockedSettings={simulationHook.lockedSettings}
 				useWebGPU={simulationHook.useWebGPU}
 				viewportWidth={viewportHook.canvasSize().width}
 				viewportHeight={viewportHook.canvasSize().height}
@@ -62,6 +63,8 @@ const App = () => {
 				onToggleSimulationMode={simulationHook.handleToggleSimulationMode}
 				onExport={simulationHook.handleExportScreenshot}
 				onToggleRecording={simulationHook.handleToggleRecording}
+				onToggleLock={simulationHook.handleToggleLock}
+				onToggleSpeciesLock={simulationHook.handleToggleSpeciesLock}
 			/>
 
 			<PerformancePanel

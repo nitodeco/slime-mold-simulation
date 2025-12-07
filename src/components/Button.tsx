@@ -10,7 +10,7 @@ interface Props {
 
 export const Button = (props: Props) => {
 	const baseClasses =
-		"px-3 py-1 border-2 border-gray-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer";
+		"px-3 py-1 border-2 border-gray-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer rounded-sm";
 
 	const variantClasses = {
 		default: "bg-gray-700 text-gray-200 hover:bg-gray-600",

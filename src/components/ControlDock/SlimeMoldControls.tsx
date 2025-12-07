@@ -1,4 +1,7 @@
+import { Show } from "solid-js";
 import type { SlimeConfig, SpeciesConfig } from "../../core/slime";
+import type { LockedSettings } from "../../utils/storage";
+import { LockButton } from "../LockButton";
 
 interface SliderControlProps {
 	label: string;
@@ -8,13 +11,23 @@ interface SliderControlProps {
 	max: number;
 	step?: number;
 	onChange: (value: number) => void;
+	locked?: boolean;
+	onToggleLock?: () => void;
 }
 
 const SliderControl = (props: SliderControlProps) => {
 	return (
 		<div class="flex flex-col gap-1">
-			<div class="flex justify-between text-[10px] uppercase tracking-wider font-bold text-gray-400">
-				<span>{props.label}</span>
+			<div class="flex justify-between items-center text-[10px] uppercase tracking-wider font-bold text-gray-400">
+				<div class="flex items-center gap-1">
+					<Show when={props.onToggleLock !== undefined}>
+						<LockButton
+							locked={props.locked ?? false}
+							onToggle={() => props.onToggleLock?.()}
+						/>
+					</Show>
+					<span>{props.label}</span>
+				</div>
 				<span>{props.displayValue}</span>
 			</div>
 			<input
@@ -34,14 +47,17 @@ const SliderControl = (props: SliderControlProps) => {
 
 interface SlimeMoldControlsProps {
 	slimeConfig: () => SlimeConfig;
+	lockedSettings: () => LockedSettings;
 	onSlimeConfigChange: (
 		key: keyof SlimeConfig,
 		value: SlimeConfig[keyof SlimeConfig] | SpeciesConfig[keyof SpeciesConfig],
 	) => void;
+	onToggleLock: (key: keyof Omit<LockedSettings, "species">) => void;
 }
 
 export const SlimeMoldControls = (props: SlimeMoldControlsProps) => {
 	const config = () => props.slimeConfig();
+	const locked = () => props.lockedSettings();
 
 	return (
 		<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
@@ -53,6 +69,8 @@ export const SlimeMoldControls = (props: SlimeMoldControlsProps) => {
 				max={20}
 				step={0.1}
 				onChange={(value) => props.onSlimeConfigChange("decayRate", value)}
+				locked={locked().decayRate}
+				onToggleLock={() => props.onToggleLock("decayRate")}
 			/>
 
 			<SliderControl
@@ -63,6 +81,8 @@ export const SlimeMoldControls = (props: SlimeMoldControlsProps) => {
 				max={1}
 				step={0.05}
 				onChange={(value) => props.onSlimeConfigChange("diffuseWeight", value)}
+				locked={locked().diffuseWeight}
+				onToggleLock={() => props.onToggleLock("diffuseWeight")}
 			/>
 
 			<SliderControl
@@ -73,6 +93,8 @@ export const SlimeMoldControls = (props: SlimeMoldControlsProps) => {
 				max={20}
 				step={0.5}
 				onChange={(value) => props.onSlimeConfigChange("agentCount", value)}
+				locked={locked().agentCount}
+				onToggleLock={() => props.onToggleLock("agentCount")}
 			/>
 		</div>
 	);

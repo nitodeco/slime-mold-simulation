@@ -89,7 +89,7 @@ export const ExportControl = (props: Props) => {
 			</Button>
 
 			<Show when={dropdownOpen() && !props.isExporting()}>
-				<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 border-2 border-gray-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] min-w-[180px] z-20 pointer-events-auto flex flex-col">
+				<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 border-2 border-gray-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] min-w-[180px] z-20 pointer-events-auto flex flex-col rounded-sm">
 					<div class="p-2 border-b border-gray-600">
 						<div class="text-[10px] uppercase text-gray-400 mb-1 font-bold tracking-wider">
 							Video
@@ -97,7 +97,7 @@ export const ExportControl = (props: Props) => {
 						<button
 							type="button"
 							onClick={handleToggleRecording}
-							class={`w-full px-2 py-1.5 text-left text-xs border transition-colors flex items-center gap-2 cursor-pointer ${
+							class={`w-full px-2 py-1.5 text-left text-xs border transition-colors flex items-center gap-2 cursor-pointer rounded-sm ${
 								props.isRecording()
 									? "border-red-500/50 bg-red-900/20 text-red-200 hover:bg-red-900/40"
 									: "border-transparent text-gray-200 hover:bg-gray-700"
@@ -121,7 +121,7 @@ export const ExportControl = (props: Props) => {
 						<button
 							type="button"
 							onClick={handleViewportExport}
-							class="w-full px-2 py-1.5 text-left text-xs text-gray-200 hover:bg-gray-700 border border-transparent cursor-pointer"
+							class="w-full px-2 py-1.5 text-left text-xs text-gray-200 hover:bg-gray-700 border border-transparent cursor-pointer rounded-sm"
 						>
 							Viewport ({props.viewportWidth}x{props.viewportHeight})
 						</button>
@@ -129,7 +129,7 @@ export const ExportControl = (props: Props) => {
 							<button
 								type="button"
 								onClick={() => handleExport(preset.width, preset.height)}
-								class="w-full px-2 py-1.5 text-left text-xs text-gray-200 hover:bg-gray-700 border border-transparent cursor-pointer"
+								class="w-full px-2 py-1.5 text-left text-xs text-gray-200 hover:bg-gray-700 border border-transparent cursor-pointer rounded-sm"
 							>
 								{preset.label} ({preset.width}x{preset.height})
 							</button>

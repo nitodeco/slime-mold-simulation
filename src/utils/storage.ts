@@ -12,7 +12,54 @@ export interface SimulationSettings {
 	useWebGPU: boolean;
 }
 
+export interface SpeciesLockedSettings {
+	sensorAngle: boolean;
+	turnAngle: boolean;
+	sensorDist: boolean;
+	agentSpeed: boolean;
+	depositAmount: boolean;
+	colorPreset: boolean;
+	agentCount: boolean;
+}
+
+export interface LockedSettings {
+	decayRate: boolean;
+	diffuseWeight: boolean;
+	agentCount: boolean;
+	spawnPattern: boolean;
+	interactions: boolean;
+	species: [
+		SpeciesLockedSettings,
+		SpeciesLockedSettings,
+		SpeciesLockedSettings,
+	];
+}
+
+export const DEFAULT_SPECIES_LOCKED_SETTINGS: SpeciesLockedSettings = {
+	sensorAngle: false,
+	turnAngle: false,
+	sensorDist: false,
+	agentSpeed: false,
+	depositAmount: false,
+	colorPreset: false,
+	agentCount: false,
+};
+
+export const DEFAULT_LOCKED_SETTINGS: LockedSettings = {
+	decayRate: false,
+	diffuseWeight: false,
+	agentCount: false,
+	spawnPattern: false,
+	interactions: false,
+	species: [
+		{ ...DEFAULT_SPECIES_LOCKED_SETTINGS },
+		{ ...DEFAULT_SPECIES_LOCKED_SETTINGS },
+		{ ...DEFAULT_SPECIES_LOCKED_SETTINGS },
+	],
+};
+
 export const SIMULATION_SETTINGS_KEY = "simulation-settings";
+export const LOCKED_SETTINGS_KEY = "locked-settings";
 
 const colorPresetNameSchema = z.enum([
 	"neon",
@@ -105,4 +152,49 @@ export function decodeSimulationSettings(
 	} catch {
 		return null;
 	}
+}
+
+const speciesLockedSettingsSchema: z.ZodType<SpeciesLockedSettings> = z.object({
+	sensorAngle: z.boolean(),
+	turnAngle: z.boolean(),
+	sensorDist: z.boolean(),
+	agentSpeed: z.boolean(),
+	depositAmount: z.boolean(),
+	colorPreset: z.boolean(),
+	agentCount: z.boolean(),
+});
+
+const lockedSettingsSchema: z.ZodType<LockedSettings> = z.object({
+	decayRate: z.boolean(),
+	diffuseWeight: z.boolean(),
+	agentCount: z.boolean(),
+	spawnPattern: z.boolean(),
+	interactions: z.boolean(),
+	species: z.tuple([
+		speciesLockedSettingsSchema,
+		speciesLockedSettingsSchema,
+		speciesLockedSettingsSchema,
+	]),
+});
+
+export function loadLockedSettings(): LockedSettings | null {
+	try {
+		const stored = localStorage.getItem(LOCKED_SETTINGS_KEY);
+		if (stored === null) {
+			return null;
+		}
+
+		const parsed = JSON.parse(stored);
+		const result = lockedSettingsSchema.safeParse(parsed);
+
+		return result.success ? result.data : null;
+	} catch {
+		return null;
+	}
+}
+
+export function saveLockedSettings(settings: LockedSettings): void {
+	try {
+		localStorage.setItem(LOCKED_SETTINGS_KEY, JSON.stringify(settings));
+	} catch {}
 }

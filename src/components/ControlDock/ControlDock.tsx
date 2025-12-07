@@ -4,6 +4,10 @@ import type {
 	SpawnPattern,
 	SpeciesConfig,
 } from "../../core/slime";
+import type {
+	LockedSettings,
+	SpeciesLockedSettings,
+} from "../../utils/storage";
 import { Button } from "../Button";
 import { CollapseButton } from "./CollapseButton";
 import { ExportControl } from "./ExportControl";
@@ -18,6 +22,7 @@ interface Props {
 	running: () => boolean;
 	speed: () => number;
 	slimeConfig: () => SlimeConfig;
+	lockedSettings: () => LockedSettings;
 	useWebGPU: () => boolean;
 	viewportWidth: number;
 	viewportHeight: number;
@@ -38,6 +43,11 @@ interface Props {
 	onToggleSimulationMode: () => void;
 	onExport: (width: number, height: number) => void;
 	onToggleRecording: () => void;
+	onToggleLock: (key: keyof Omit<LockedSettings, "species">) => void;
+	onToggleSpeciesLock: (
+		speciesIndex: number,
+		key: keyof SpeciesLockedSettings,
+	) => void;
 }
 
 const STORAGE_KEY = "controldock-collapsed";
@@ -65,7 +75,7 @@ export const ControlDock = (props: Props) => {
 			<div class="relative w-full max-w-[95vw] md:max-w-6xl">
 				<CollapseButton collapsed={collapsed} onClick={handleToggle} />
 				<div
-					class={`relative pointer-events-auto bg-gray-800/95 border-2 border-gray-600 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.6)] pt-2 pb-4 px-4 flex flex-col gap-3 w-full`}
+					class={`relative pointer-events-auto bg-gray-800/95 border-2 border-gray-600 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.6)] pt-2 pb-4 px-4 flex flex-col gap-3 w-full rounded-sm`}
 				>
 					<div class="flex flex-row flex-wrap items-center justify-center gap-2 md:gap-4 shrink-0 z-20 relative">
 						<PlaybackControls
@@ -97,9 +107,11 @@ export const ControlDock = (props: Props) => {
 									/>
 									<SpawnPatternControl
 										spawnPattern={() => props.slimeConfig().spawnPattern}
+										locked={props.lockedSettings().spawnPattern}
 										onSpawnPatternChange={(pattern: SpawnPattern) =>
 											props.onSlimeConfigChange("spawnPattern", pattern)
 										}
+										onToggleLock={() => props.onToggleLock("spawnPattern")}
 									/>
 									<Button
 										onClick={props.onToggleSimulationMode}
@@ -115,14 +127,19 @@ export const ControlDock = (props: Props) => {
 									<div class="flex flex-col gap-4">
 										<SpeciesTabs
 											configs={props.slimeConfig().species}
+											lockedSettings={props.lockedSettings().species}
 											onChange={(index, key, value) =>
 												props.onSlimeConfigChange("species", value, index, key)
+											}
+											onToggleLock={(speciesIndex, key) =>
+												props.onToggleSpeciesLock(speciesIndex, key)
 											}
 										/>
 									</div>
 									<div class="flex flex-col gap-4">
 										<InteractionMatrix
 											config={props.slimeConfig()}
+											locked={props.lockedSettings().interactions}
 											onChange={(row, col, value) =>
 												props.onSlimeConfigChange(
 													"interactions",
@@ -133,10 +150,13 @@ export const ControlDock = (props: Props) => {
 													col,
 												)
 											}
+											onToggleLock={() => props.onToggleLock("interactions")}
 										/>
 										<SlimeMoldControls
 											slimeConfig={props.slimeConfig}
+											lockedSettings={props.lockedSettings}
 											onSlimeConfigChange={props.onSlimeConfigChange}
+											onToggleLock={props.onToggleLock}
 										/>
 									</div>
 								</div>

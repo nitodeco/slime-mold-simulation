@@ -1,8 +1,11 @@
 import type { SpawnPattern } from "../../core/slime";
+import { LockButton } from "../LockButton";
 
 interface SpawnPatternControlProps {
 	spawnPattern: () => SpawnPattern;
+	locked: boolean;
 	onSpawnPatternChange: (pattern: SpawnPattern) => void;
+	onToggleLock: () => void;
 }
 
 const SPAWN_PATTERN_OPTIONS: { value: SpawnPattern; label: string }[] = [
@@ -21,9 +24,12 @@ export const SpawnPatternControl = (props: SpawnPatternControlProps) => {
 
 	return (
 		<div class="flex items-center gap-3 bg-gray-900/40 px-3 py-2 border-2 border-gray-700/30 rounded-sm">
-			<span class="text-gray-400 text-[10px] uppercase tracking-wider font-bold">
-				Spawn
-			</span>
+			<div class="flex items-center gap-1">
+				<LockButton locked={props.locked} onToggle={props.onToggleLock} />
+				<span class="text-gray-400 text-[10px] uppercase tracking-wider font-bold">
+					Spawn
+				</span>
+			</div>
 			<select
 				value={props.spawnPattern()}
 				onChange={handleChange}

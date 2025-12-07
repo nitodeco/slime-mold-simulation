@@ -1,10 +1,13 @@
 import { For } from "solid-js";
 import { getColorPreset, type SlimeConfig } from "../../core/slime";
+import { LockButton } from "../LockButton";
 import { Popover } from "../Popover";
 
 interface InteractionMatrixProps {
 	config: SlimeConfig;
+	locked: boolean;
 	onChange: (row: number, col: number, value: number) => void;
+	onToggleLock: () => void;
 }
 
 export const InteractionMatrix = (props: InteractionMatrixProps) => {
@@ -61,7 +64,8 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 	return (
 		<div class="flex flex-col gap-4 bg-gray-900/30 p-3 rounded-sm border border-gray-700/50">
 			<div class="flex items-center justify-between">
-				<div class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+				<div class="flex items-center gap-1 text-xs font-bold text-gray-400 uppercase tracking-wider">
+					<LockButton locked={props.locked} onToggle={props.onToggleLock} />
 					Interactions
 				</div>
 				<Popover
@@ -132,7 +136,7 @@ export const InteractionMatrix = (props: InteractionMatrixProps) => {
 															Number.parseFloat(e.currentTarget.value),
 														)
 													}
-													class="w-full bg-gray-800 text-center text-xs p-1 rounded border border-gray-700 focus:border-blue-500 outline-none appearance-none"
+													class="w-full bg-gray-800 text-center text-xs p-1 rounded-sm border border-gray-700 focus:border-blue-500 outline-none appearance-none"
 													style={{
 														"border-color": getCellColor(val),
 													}}
